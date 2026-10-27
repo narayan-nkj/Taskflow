@@ -381,7 +381,7 @@ export function App() {
 
                   {/* 3 Compact Statistic Cards + Completion Companion (Stationary) */}
                   <div className="shrink-0">
-                    <StatCards stats={statistics} history={metricHistory} />
+                    <StatCards stats={statistics} history={metricHistory} tasks={tasks} />
                   </div>
 
                   {/* Horizontal Month & 7-Day Date Strip (Stationary) */}
