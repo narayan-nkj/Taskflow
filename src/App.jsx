@@ -16,6 +16,7 @@ import { ConfirmModal } from './components/common/ConfirmModal';
 import { ImportModal } from './components/transfer/ImportModal';
 import { SampleTodosView } from './components/samples/SampleTodosView';
 import { ToastContainer } from './components/common/Toast';
+import { LoadingScreen } from './components/common/LoadingScreen';
 import { useDeadlineAlerts } from './hooks/useDeadlineAlerts';
 import { loadMetricHistory, recordMetricSnapshot } from './utils/metricHistory';
 import { DEFAULT_FILTERS, filterTasks } from './utils/filtering';
@@ -56,6 +57,17 @@ export function App() {
 
   // Navigation tab: 'tasks' (Dashboard/My Tasks) | 'samples' (Sample Tasks from DummyJSON)
   const [currentTab, setCurrentTab] = useState('tasks');
+
+  // Initial startup loading screen state
+  const [isLoadingVisible, setIsLoadingVisible] = useState(true);
+  const [isFadingOut, setIsFadingOut] = useState(false);
+
+  const handleLoadingComplete = () => {
+    setIsFadingOut(true);
+    setTimeout(() => {
+      setIsLoadingVisible(false);
+    }, 350);
+  };
 
   // Search, Filters & Sorting state
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
@@ -541,6 +553,15 @@ export function App() {
 
       {/* Toast Notifications Container */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
+      {/* Initial Startup Loading Screen */}
+      {isLoadingVisible && (
+        <LoadingScreen
+          isDark={isDark}
+          isFadingOut={isFadingOut}
+          onComplete={handleLoadingComplete}
+        />
+      )}
     </div>
   );
 }

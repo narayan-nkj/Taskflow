@@ -1,44 +1,99 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, act } from '@testing-library/react';
 import { LoadingScreen } from '../src/components/common/LoadingScreen';
-import { App } from '../src/App';
 
 describe('LoadingScreen Component', () => {
-  it('renders accessible status role and message truthfully without fake counters', () => {
-    render(<LoadingScreen isDark={false} message="Synchronizing workspace..." />);
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
 
-    const status = screen.getByRole('status');
-    expect(status).toBeInTheDocument();
-    expect(screen.getByLabelText(/synchronizing workspace/i)).toBeInTheDocument();
-    expect(screen.getByText(/synchronizing workspace/i)).toBeInTheDocument();
+  afterEach(() => {
+    vi.useRealTimers();
+  });
 
-    // Verify there is NO simulated 1-100 counter or fake percentage text
-    expect(screen.queryByText(/OPTIMIZING PERFORMANCE/i)).not.toBeInTheDocument();
+  it('renders brand elements, wordmark, and status message', () => {
+    render(<LoadingScreen isDark={false} isFadingOut={false} />);
+
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByLabelText(/loading taskflow workspace/i)).toBeInTheDocument();
+    expect(screen.getByText(/TaskFlow/i)).toBeInTheDocument();
+    expect(screen.getByText(/Student Productivity Dashboard/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /PREPARING YOUR WORKSPACE/i })).toBeInTheDocument();
+  });
+
+  it('renders cinematic typography, chevrons, and initial 01 numeral', () => {
+    render(<LoadingScreen isDark={true} isFadingOut={false} />);
+
+    // Editorial tagline and chevrons
+    expect(screen.getByText(/THE ART OF GETTING THINGS DONE/i)).toBeInTheDocument();
+    expect(screen.getByText(/›››/i)).toBeInTheDocument();
+
+    // Film grain overlay
+    expect(screen.getByTestId('film-grain')).toBeInTheDocument();
+
+    // Initial oversized numeral starts at 01
+    expect(screen.getByText('01')).toBeInTheDocument();
+  });
+
+  it('progresses smoothly through 1 to 100 counter and triggers onComplete', () => {
+    const onComplete = vi.fn();
+    render(<LoadingScreen isDark={true} isFadingOut={false} onComplete={onComplete} />);
+
+    expect(screen.getByText('01')).toBeInTheDocument();
+
+    // Advance timers partially through loading progression
+    act(() => {
+      vi.advanceTimersByTime(1200);
+    });
+
+    // Expect progress to have moved past initial stage (beyond 25%)
     expect(screen.queryByText('01')).not.toBeInTheDocument();
-    expect(screen.queryByText('100')).not.toBeInTheDocument();
+
+    // Advance timers to completion (total ~2.8s)
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    // Numeral should reach 100
+    expect(screen.getByText('100')).toBeInTheDocument();
+    expect(onComplete).toHaveBeenCalled();
   });
 
-  it('adapts surfaces for light and dark themes', () => {
-    const { rerender } = render(<LoadingScreen isDark={false} />);
+  it('adapts surfaces for light and dark themes without blue backgrounds', () => {
+    const { rerender } = render(<LoadingScreen isDark={false} isFadingOut={false} />);
     let container = screen.getByRole('status');
-    expect(container.className).toContain('bg-[#FAFAFA]');
+    expect(container.className).toContain('bg-[#F8FAFC]');
 
-    rerender(<LoadingScreen isDark={true} />);
+    rerender(<LoadingScreen isDark={true} isFadingOut={false} />);
     container = screen.getByRole('status');
-    expect(container.className).toContain('bg-[#0B0B0B]');
+    expect(container.className).toContain('bg-[#050505]');
+    expect(container.className).not.toContain('bg-blue');
   });
-});
 
-describe('Dashboard Startup Performance (No Artificial Timer)', () => {
-  it('mounts App and immediately renders the workspace without delay', () => {
-    render(<App />);
+  it('applies fading out classes for smooth dissolve transition', () => {
+    render(<LoadingScreen isDark={true} isFadingOut={true} />);
+    const container = screen.getByRole('status');
+    expect(container.className).toContain('opacity-0');
+    expect(container.className).toContain('pointer-events-none');
+  });
 
-    // Dashboard headings and primary controls must be immediately present
-    expect(screen.getByRole('heading', { name: /Task Overview Statistics/i })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/search tasks/i)).toBeInTheDocument();
+  it('respects prefers-reduced-motion preference by starting directly at 100', () => {
+    // Mock matchMedia for prefers-reduced-motion
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
 
-    // No full-screen splash or loading screen blocking user interaction
-    expect(screen.queryByText(/PREPARING YOUR WORKSPACE/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/SYNCHRONIZING ENVIRONMENT/i)).not.toBeInTheDocument();
+    render(<LoadingScreen isDark={true} isFadingOut={false} />);
+    expect(screen.getByText('100')).toBeInTheDocument();
+
+    window.matchMedia = originalMatchMedia;
   });
 });
