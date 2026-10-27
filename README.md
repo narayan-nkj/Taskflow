@@ -48,8 +48,8 @@ Clone the repository and install dependencies:
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/your-username/taskflow.git
-cd taskflow
+git clone https://github.com/narayan-nkj/Taskflow.git
+cd Taskflow
 
 # 2. Install dependencies
 npm install
@@ -67,7 +67,7 @@ Open `http://localhost:5173/` in your browser.
 | Command | Description |
 | :--- | :--- |
 | `npm run dev` | Starts the Vite development server with Hot Module Replacement (HMR). |
-| `npm run test` | Runs the full Vitest unit test suite (25 tests covering statistics, dates, sorting, filtering, validation). |
+| `npm run test` | Runs the full Vitest suite (76 tests across 13 test files covering CRUD, hooks, API guards, storage resilience, validation, sorting, filtering, modal focus, and a11y). |
 | `npm run type-check` | Runs the TypeScript compiler (`tsc --noEmit`) to verify strict type safety. |
 | `npm run lint` | Runs ESLint across all source and test files. |
 | `npm run build` | Compiles TypeScript and creates an optimized production bundle in `dist/`. |
@@ -123,11 +123,20 @@ taskflow/
 │   ├── main.tsx               # React application entry point
 │   └── index.css              # Tailwind CSS directives, accessible focus styles, reduced-motion
 ├── tests/
+│   ├── setup.ts               # Global testing setup (jest-dom matchers and automatic cleanup)
 │   ├── dates.test.ts          # Unit tests for date logic and deadline status rules
-│   ├── filtering.test.ts      # Unit tests for search and multi-filter composition
+│   ├── filtering.test.ts      # Unit tests for search, multi-filter composition, and sort separation
 │   ├── sorting.test.ts        # Unit tests for deterministic sorting and tie-breakers
 │   ├── statistics.test.ts     # Unit tests for stats and zero-task edge cases
-│   └── validation.test.ts     # Unit tests for form input and all-or-nothing JSON import
+│   ├── storage.test.ts        # Unit tests for guarded localStorage property access & quota handling
+│   ├── validation.test.ts     # Unit tests for input boundary (120/121 chars) and import schemas
+│   ├── importExport.test.ts   # Unit tests for ID allocation, bounded retries & collision resolution
+│   ├── useTasks.test.tsx      # Tests for pure task state updaters, delete/undo, and StrictMode purity
+│   ├── useAdvice.test.tsx     # Tests for advice loading, error retry, unmount abort, and stale guards
+│   ├── useSampleTodos.test.tsx# Tests for DummyJSON loading, retry, unmount abort, and stale guards
+│   ├── modal.test.tsx         # Tests for dialog focus management, disabled skip, and focus trap
+│   ├── adviceCard.test.tsx    # Tests for aria-busy and polite live region screen reader announcements
+│   └── mobileHeader.test.tsx  # Tests for mobile drawer expansion and aria-current tab navigation
 ├── index.html                 # HTML root with meta tags, Inter font, and FOUC prevention
 ├── package.json               # Scripts, dependencies, and configuration
 ├── tailwind.config.js         # Tailwind theme extension (colors, dark mode class)
@@ -146,8 +155,8 @@ type TaskPriority = 'High' | 'Medium' | 'Low';
 type TaskCategory = 'GDG' | 'Academics' | 'Personal';
 
 interface UserTask {
-  id: string;            // UUID v4
-  title: string;         // Trimmed, 1-120 characters
+  id: string;            // Unique ID: crypto.randomUUID() when available, with collision-resistant timestamp/counter fallback
+  title: string;         // Trimmed, non-empty, 1-120 characters
   priority: TaskPriority;
   category: TaskCategory;
   dueDate: string | null;// Calendar date in YYYY-MM-DD or null if absent
@@ -181,7 +190,7 @@ A fundamental architectural principle of TaskFlow is the **strict isolation of u
 2. **Dashboard Isolation:** The 4 statistic cards (Total, Completed, Pending, Completion Rate) and the My Tasks list compute derived values **exclusively from user-owned tasks**.
 3. **Destructive Safety:** Operations such as "Clear Completed" or "Delete" only affect user-owned tasks and cannot mutate or wipe remote samples.
 4. **Copying Behavior:** Clicking **"Add copy to My Tasks"** generates an independent `UserTask` with:
-   - A newly generated UUID (`crypto.randomUUID()`)
+   - A newly generated unique ID (`crypto.randomUUID()` with collision-resistant fallback)
    - Category set to `Personal`
    - Priority set to `Medium`
    - Status set to `Pending`
@@ -234,9 +243,9 @@ Exports a downloadable file named `taskflow-tasks-YYYY-MM-DD.json`:
 
 ### Import Validation & Merge Policy
 
-1. **Formats Supported:** Accepts either the standard TaskFlow export object (`{ schemaVersion: 1, tasks: [...] }`) or a raw JSON array of valid `UserTask` objects.
-2. **All-or-Nothing Validation:** If the file contains unparseable JSON, an unsupported schema version, or any invalid task record (e.g., missing title, invalid priority enum, malformed date), the entire import is rejected with a specific error message. **Existing tasks remain completely untouched.**
-3. **Collision Resolution:** When an imported task shares an ID with an existing task, TaskFlow automatically assigns the imported task a new UUID v4. Both the existing task and the imported task are preserved without data loss.
+1. **Formats Supported:** Accepts either the standard TaskFlow export object with `schemaVersion: 1` (`{ schemaVersion: 1, exportedAt, appName, tasks: [...] }`) or a raw JSON array of valid `UserTask` objects. Object payloads with a missing `schemaVersion` or unsupported version numbers are explicitly rejected with an informative error message.
+2. **All-or-Nothing Validation:** If the file contains unparseable JSON, an unsupported or missing schema version, or any invalid task record (e.g., empty or whitespace-only title, title exceeding 120 characters, invalid priority/category/status enum, malformed date), the entire import is rejected with a specific error message. **Existing tasks remain completely untouched.**
+3. **Collision Resolution:** When an imported task shares an ID with an existing task or with another task inside the same imported file, TaskFlow generates a replacement unique ID using bounded retries and deterministic fallbacks. Both existing tasks and all valid imported tasks are preserved as distinct records without data loss.
 
 ---
 
@@ -251,40 +260,42 @@ Exports a downloadable file named `taskflow-tasks-YYYY-MM-DD.json`:
 - **Responsive Layout:**
   - **Desktop (>= 1024px):** Fixed navigation rail + responsive dashboard grid.
   - **Tablet (768px - 1023px):** Compact spacing and adaptive card columns.
-  - **Mobile (< 768px):** Sticky top bar, quick Add button, collapsible drawer navigation, and vertically stacked cards with zero horizontal overflow.
+  - **Mobile (< 768px):** Sticky top bar, quick Add button, collapsible drawer navigation with `aria-current="page"`, and touch-friendly controls (`min-h-[44px]`).
 
 ---
 
 ## 🚢 Deployment Guide
 
-### Deploying to Vercel
+> **Note on Deployment:** No live automated deployment pipeline or hosting credentials are configured. The instructions below describe manual deployment steps to static web hosts. A standard `public/_redirects` file is included in the repository to support single-page application (SPA) routing on Netlify and Cloudflare Pages.
+
+### Manual Deployment to Netlify
+
+1. Connect your repository in [Netlify](https://www.netlify.com/).
+2. Set Build Command to `npm run build`.
+3. Set Publish Directory to `dist`.
+4. The included `public/_redirects` file (`/*  /index.html  200`) automatically handles client-side routing.
+5. Click **"Deploy Site"**.
+
+### Manual Deployment to Vercel
 
 1. Push your repository to GitHub.
 2. Log into [Vercel](https://vercel.com/) and click **"Add New Project"**.
-3. Import your `taskflow` repository.
+3. Import your `Taskflow` repository.
 4. Framework Preset: **Vite**.
 5. Build Command: `npm run build`
 6. Output Directory: `dist`
 7. Click **"Deploy"**.
 
-### Deploying to Netlify
+### Manual Deployment to GitHub Pages
 
-1. Connect your repository in [Netlify](https://www.netlify.com/).
-2. Set Build Command to `npm run build`.
-3. Set Publish Directory to `dist`.
-4. Add a `public/_redirects` file with `/*  /index.html  200` to support single-page routing if needed.
-5. Click **"Deploy Site"**.
-
-### Deploying to GitHub Pages
-
-1. In `vite.config.ts`, set `base: '/<repo-name>/'`.
-2. Configure GitHub Actions with `.github/workflows/deploy.yml` to run `npm run build` and publish the `dist` artifact to GitHub Pages.
+1. In `vite.config.ts`, set `base: '/Taskflow/'`.
+2. Configure a GitHub Actions workflow (e.g. `.github/workflows/deploy.yml`) to run `npm run build` and publish the `dist` artifact to GitHub Pages.
 
 ---
 
 ## 📸 Screenshots
 
-*(To capture screenshots on your local system, run `npm run dev` and open `http://localhost:5173/`)*
+> **Note:** Screenshots still need to be captured from your local run. Start the development server using `npm run dev` and navigate to `http://localhost:5173/` to view and capture these states:
 
 | Screen | Description |
 | :--- | :--- |
