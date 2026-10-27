@@ -186,41 +186,43 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
 
   return (
     <div className="relative w-full" ref={containerRef}>
-      {/* Trigger Button */}
-      <button
-        id={id}
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#181818] border rounded-xl text-left text-xs sm:text-sm text-charcoal-900 dark:text-[#F5F5F5] focus:bg-white dark:focus:bg-[#181818] focus:outline-none focus:ring-2 transition-all flex items-center justify-between gap-2 cursor-pointer ${
+      {/* Trigger Input Wrapper */}
+      <div
+        className={`w-full bg-slate-50 dark:bg-[#181818] border rounded-xl text-left text-xs sm:text-sm text-charcoal-900 dark:text-[#F5F5F5] transition-all flex items-center justify-between gap-1 ${
           hasError
-            ? 'border-rose-400 focus:ring-rose-500'
+            ? 'border-rose-400 ring-2 ring-rose-500/20'
             : isOpen
-            ? 'border-brand-500 ring-2 ring-brand-500/20'
-            : 'border-slate-300 dark:border-[#292929] hover:border-slate-400 dark:hover:border-[#383838] focus:ring-brand-500'
+            ? 'border-brand-500 ring-2 ring-brand-500/20 bg-white dark:bg-[#181818]'
+            : 'border-slate-300 dark:border-[#292929] hover:border-slate-400 dark:hover:border-[#383838]'
         }`}
-        aria-label={ariaLabel}
-        aria-haspopup="dialog"
-        aria-expanded={isOpen}
       >
-        <div className="flex items-center space-x-2.5 truncate">
+        <button
+          id={id}
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          className="flex-1 px-3.5 py-2.5 flex items-center space-x-2.5 truncate cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-xl text-left"
+          aria-label={ariaLabel}
+          aria-haspopup="dialog"
+          aria-expanded={isOpen}
+        >
           <CalendarIcon className="w-4 h-4 text-brand-500 shrink-0" aria-hidden="true" />
-          <span className={value ? 'font-medium' : 'text-slate-400 dark:text-[#808080]'}>
+          <span className={`truncate ${value ? 'font-medium' : 'text-slate-400 dark:text-[#808080]'}`}>
             {displayLabel}
           </span>
-        </div>
+        </button>
 
         {value && (
           <button
             type="button"
             onClick={handleClearDate}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-[#F5F5F5] hover:bg-slate-200 dark:hover:bg-[#252525] transition-colors"
+            className="mr-2 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-[#F5F5F5] hover:bg-slate-200 dark:hover:bg-[#252525] transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 shrink-0"
             title="Clear due date"
             aria-label="Clear due date"
           >
             <X className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         )}
-      </button>
+      </div>
 
       {/* Custom Calendar Popover Dropdown */}
       {isOpen && (
