@@ -10,6 +10,8 @@ export const VALID_STATUSES: readonly TaskStatus[] = ['Pending', 'In Progress', 
 export const VALID_PRIORITIES: readonly TaskPriority[] = ['High', 'Medium', 'Low'] as const;
 export const VALID_CATEGORIES: readonly TaskCategory[] = ['GDG', 'Academics', 'Personal'] as const;
 
+export const MAX_TITLE_LENGTH = 120;
+
 export function isValidStatus(val: unknown): val is TaskStatus {
   return typeof val === 'string' && VALID_STATUSES.includes(val as TaskStatus);
 }
@@ -42,8 +44,8 @@ export function validateTaskInput(input: {
   const trimmedTitle = input.title.trim();
   if (!trimmedTitle) {
     errors.title = 'Title is required and cannot be blank.';
-  } else if (trimmedTitle.length > 120) {
-    errors.title = 'Title must be 120 characters or fewer.';
+  } else if (trimmedTitle.length > MAX_TITLE_LENGTH) {
+    errors.title = `Title must be ${MAX_TITLE_LENGTH} characters or fewer.`;
   }
 
   if (!isValidPriority(input.priority)) {
@@ -73,13 +75,18 @@ export function validateTaskInput(input: {
 
 /**
  * Validates a loaded or parsed UserTask object strictly.
+ * Applies the exact same title length and non-empty rules as form submissions.
  */
 export function isValidUserTask(obj: unknown): obj is UserTask {
   if (!obj || typeof obj !== 'object') return false;
   const candidate = obj as Record<string, unknown>;
 
   if (typeof candidate.id !== 'string' || candidate.id.trim() === '') return false;
-  if (typeof candidate.title !== 'string' || candidate.title.trim() === '') return false;
+  
+  if (typeof candidate.title !== 'string') return false;
+  const trimmedTitle = candidate.title.trim();
+  if (trimmedTitle.length === 0 || trimmedTitle.length > MAX_TITLE_LENGTH) return false;
+
   if (!isValidPriority(candidate.priority)) return false;
   if (!isValidCategory(candidate.category)) return false;
   if (candidate.dueDate !== null && typeof candidate.dueDate !== 'string') return false;
@@ -99,7 +106,10 @@ export interface ImportValidationResult {
 
 /**
  * All-or-nothing validation of an imported JSON file string.
- * Supports { schemaVersion: 1, tasks: [...] } and raw UserTask[].
+ * Supports:
+ * 1. Raw UserTask[] array
+ * 2. Schema version 1 object payload { schemaVersion: 1, tasks: [...] }
+ * Rejects missing or unsupported schemaVersion for object payloads.
  */
 export function validateImportJson(rawContent: string): ImportValidationResult {
   if (!rawContent || rawContent.trim() === '') {
@@ -124,13 +134,24 @@ export function validateImportJson(rawContent: string): ImportValidationResult {
     taskArray = parsed;
   } else if (parsed && typeof parsed === 'object') {
     const payload = parsed as Record<string, unknown>;
-    if (payload.schemaVersion !== undefined && payload.schemaVersion !== 1) {
+    
+    // Explicit policy: Object payloads MUST include schemaVersion === 1
+    if (payload.schemaVersion === undefined) {
+      return {
+        isValid: false,
+        tasks: [],
+        errorMessage: 'Invalid file format: Missing "schemaVersion" in JSON object. Expected schemaVersion: 1.',
+      };
+    }
+    
+    if (payload.schemaVersion !== 1) {
       return {
         isValid: false,
         tasks: [],
         errorMessage: `Unsupported schema version: ${payload.schemaVersion}. Only version 1 is supported.`,
       };
     }
+    
     if (!Array.isArray(payload.tasks)) {
       return {
         isValid: false,
