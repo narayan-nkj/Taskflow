@@ -64,13 +64,13 @@ export function useTasks() {
         status?: TaskStatus;
       }
     ): boolean => {
-      let found = false;
-      const nowIso = new Date().toISOString();
+      const exists = tasks.some((t) => t.id === id);
+      if (!exists) return false;
 
+      const nowIso = new Date().toISOString();
       setTasks((prev) =>
         prev.map((task) => {
           if (task.id === id) {
-            found = true;
             return {
               ...task,
               title: updates.title !== undefined ? updates.title.trim() : task.title,
@@ -85,32 +85,36 @@ export function useTasks() {
         })
       );
 
-      return found;
+      return true;
     },
-    []
+    [tasks]
   );
 
-  const deleteTask = useCallback((id: string): UserTask | null => {
-    let deletedTask: UserTask | null = null;
-    setTasks((prev) => {
-      const target = prev.find((t) => t.id === id);
+  const deleteTask = useCallback(
+    (id: string): UserTask | null => {
+      const target = tasks.find((t) => t.id === id) || null;
       if (target) {
-        deletedTask = target;
-        return prev.filter((t) => t.id !== id);
+        setTasks((prev) => prev.filter((t) => t.id !== id));
       }
-      return prev;
-    });
-    return deletedTask;
-  }, []);
+      return target;
+    },
+    [tasks]
+  );
 
   const restoreTask = useCallback((task: UserTask) => {
-    setTasks((prev) => [task, ...prev]);
+    setTasks((prev) => {
+      // Prevent duplicate IDs if task is already in state
+      if (prev.some((t) => t.id === task.id)) {
+        return prev;
+      }
+      return [task, ...prev];
+    });
   }, []);
 
   const toggleTaskStatus = useCallback((id: string) => {
-    const nowIso = new Date().toISOString();
-    setTasks((prev) =>
-      prev.map((task) => {
+    setTasks((prev) => {
+      const nowIso = new Date().toISOString();
+      return prev.map((task) => {
         if (task.id === id) {
           const nextStatus: TaskStatus =
             task.status === 'Completed' ? 'Pending' : 'Completed';
@@ -121,14 +125,14 @@ export function useTasks() {
           };
         }
         return task;
-      })
-    );
+      });
+    });
   }, []);
 
   const setTaskStatus = useCallback((id: string, status: TaskStatus) => {
-    const nowIso = new Date().toISOString();
-    setTasks((prev) =>
-      prev.map((task) => {
+    setTasks((prev) => {
+      const nowIso = new Date().toISOString();
+      return prev.map((task) => {
         if (task.id === id) {
           return {
             ...task,
@@ -137,25 +141,17 @@ export function useTasks() {
           };
         }
         return task;
-      })
-    );
+      });
+    });
   }, []);
 
   const clearCompletedTasks = useCallback((): number => {
-    let count = 0;
-    setTasks((prev) => {
-      const remaining: UserTask[] = [];
-      for (const t of prev) {
-        if (t.status === 'Completed') {
-          count++;
-        } else {
-          remaining.push(t);
-        }
-      }
-      return remaining;
-    });
-    return count;
-  }, []);
+    const completedCount = tasks.filter((t) => t.status === 'Completed').length;
+    if (completedCount > 0) {
+      setTasks((prev) => prev.filter((t) => t.status !== 'Completed'));
+    }
+    return completedCount;
+  }, [tasks]);
 
   const setAllTasks = useCallback((newTasks: UserTask[]) => {
     setTasks(newTasks);
