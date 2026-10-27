@@ -69,7 +69,7 @@ Open `http://localhost:5173/` in your browser.
 | Command | Description |
 | :--- | :--- |
 | `npm run dev` | Starts the Vite development server with Hot Module Replacement (HMR). |
-| `npm run test` | Runs the full Vitest suite (113 unit and component tests across 22 test files covering CRUD, hooks, API resilience, storage corruption recovery, sorting, filtering, dialog focus traps, custom calendar date pickers, statistics micro-visualizations, deadline notifications, and weather services). |
+| `npm run test` | Runs the full Vitest suite (123 unit and component tests across 23 test files covering CRUD, hooks, API resilience, storage corruption recovery, sorting, filtering, dialog focus traps, custom calendar date pickers, statistics micro-visualizations, deadline notifications, cinematic typographic loading screen, and weather services). |
 | `npm run type-check` | Runs the TypeScript compiler (`tsc --noEmit`) to verify strict type safety. |
 | `npm run lint` | Runs ESLint across all source and test files. |
 | `npm run build` | Compiles TypeScript and creates an optimized production bundle in `dist/`. |
@@ -119,6 +119,7 @@ taskflow/
 │   │   │   ├── CircularProgress.tsx       # SVG circular progress gauge ring for completion rate
 │   │   │   ├── ConfirmModal.tsx           # Confirmation dialog for Delete and Clear Completed
 │   │   │   ├── DatePickerPopover.tsx      # Accessible inline calendar date-picker popover
+│   │   │   ├── LoadingScreen.tsx          # Cinematic typography-driven startup loading screen
 │   │   │   ├── Modal.tsx                  # Accessible modal dialog with focus trap & Esc handler
 │   │   │   ├── PriorityDistributionBar.tsx # Segmented workload priority distribution bars
 │   │   │   ├── Sparkline.tsx              # Clean SVG volume trend sparkline with gradient fill
@@ -155,6 +156,7 @@ taskflow/
 │   ├── deadlineAlerts.test.ts             # Unit tests for deadline notification rules and urgency computation
 │   ├── filtering.test.ts                  # Unit tests for search, multi-filter composition, and sort separation
 │   ├── importExport.test.ts               # Unit tests for ID allocation, bounded retries & collision resolution
+│   ├── loadingScreen.test.tsx             # Tests for cinematic typographic loading screen, countdown, and themes
 │   ├── metricHistory.test.ts              # Unit tests for 7-day metric tracking and history formatting
 │   ├── mobileHeader.test.tsx              # Tests for mobile drawer expansion and aria-current tab navigation
 │   ├── modal.test.tsx                     # Tests for dialog focus management, disabled skip, and focus trap
