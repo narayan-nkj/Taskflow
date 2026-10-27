@@ -12,6 +12,13 @@ export function getLocalTodayString(baseDate = new Date()): string {
 }
 
 /**
+ * Returns a given Date in local calendar YYYY-MM-DD format
+ */
+export function formatLocalYmd(baseDate: Date): string {
+  return getLocalTodayString(baseDate);
+}
+
+/**
  * Parses YYYY-MM-DD string into a Date object representing local midnight
  */
 export function parseLocalDate(dateStr: string): Date | null {
@@ -130,4 +137,21 @@ export function getDeadlineState(
     label: `Due in ${diffDays} days`,
     daysRemaining: diffDays,
   };
+}
+
+/**
+ * Convenience helper supporting either TaskStatus string or boolean isCompleted
+ */
+export function getTaskDeadlineStatus(
+  dueDate: string | null,
+  statusOrCompleted: TaskStatus | boolean,
+  referenceDate = new Date()
+) {
+  const status: TaskStatus =
+    typeof statusOrCompleted === 'boolean'
+      ? statusOrCompleted
+        ? 'Completed'
+        : 'Pending'
+      : statusOrCompleted;
+  return getDeadlineState(dueDate, status, referenceDate);
 }
