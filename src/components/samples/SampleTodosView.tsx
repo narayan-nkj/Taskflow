@@ -150,16 +150,17 @@ export const SampleTodosView: React.FC<SampleTodosViewProps> = ({
                           ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
                           : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                       }`}
+                      aria-label={`Status: ${sample.completed ? 'Completed' : 'Pending'}`}
                     >
                       {sample.completed ? (
                         <>
                           <CheckCircle2 className="w-3 h-3 mr-1" aria-hidden="true" />
-                          API: Completed
+                          Completed
                         </>
                       ) : (
                         <>
                           <Clock className="w-3 h-3 mr-1" aria-hidden="true" />
-                          API: Pending
+                          Pending
                         </>
                       )}
                     </span>
