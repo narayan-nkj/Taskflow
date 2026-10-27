@@ -55,7 +55,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onDismiss }) => {
   return (
     <div
       role="status"
-      className="pointer-events-auto flex items-center justify-between p-3.5 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm animate-in fade-in slide-in-from-bottom-2 duration-200"
+      className="pointer-events-auto flex items-center justify-between p-3.5 bg-white dark:bg-[#111111] rounded-xl shadow-lg border border-slate-200 dark:border-[#292929] text-charcoal-900 dark:text-[#F5F5F5] text-sm animate-in fade-in slide-in-from-bottom-2 duration-200"
     >
       <div className="flex items-center space-x-2.5 min-w-0 pr-2">
         {icons[toast.type]}

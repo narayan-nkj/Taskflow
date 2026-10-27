@@ -12,7 +12,7 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority, classNam
   const styles: Record<TaskPriority, string> = {
     High: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/50',
     Medium: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/50',
-    Low: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+    Low: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-[#181818] dark:text-[#B0B0B0] dark:border-[#292929]',
   };
 
   return (
@@ -42,14 +42,14 @@ interface CategoryBadgeProps {
 
 export const CategoryBadge: React.FC<CategoryBadgeProps> = ({ category, className = '' }) => {
   const styles: Record<TaskCategory, string> = {
-    GDG: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900/50',
-    Academics: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50',
-    Personal: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/50',
+    GDG: 'bg-peach-100 text-brand-600 border-brand-500/30 dark:bg-[#24140E] dark:text-brand-300 dark:border-brand-900/40 font-semibold',
+    Academics: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800/40',
+    Personal: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40',
   };
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${styles[category]} ${className}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${styles[category] || 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-[#181818] dark:text-[#B0B0B0] dark:border-[#292929]'} ${className}`}
       aria-label={`Category: ${category}`}
     >
       {category}
@@ -73,7 +73,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = ''
       icon: <Clock className="w-3 h-3 mr-1" aria-hidden="true" />,
     },
     Pending: {
-      badge: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+      badge: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-[#181818] dark:text-[#B0B0B0] dark:border-[#292929]',
       icon: <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5" aria-hidden="true" />,
     },
   };
@@ -104,7 +104,7 @@ export const DeadlineBadge: React.FC<DeadlineBadgeProps> = ({
 }) => {
   if (state === 'none') {
     return (
-      <span className={`inline-flex items-center text-xs text-slate-400 dark:text-slate-500 ${className}`}>
+      <span className={`inline-flex items-center text-xs text-slate-400 dark:text-[#808080] ${className}`}>
         <Calendar className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
         No deadline
       </span>
@@ -117,15 +117,15 @@ export const DeadlineBadge: React.FC<DeadlineBadgeProps> = ({
       icon: <AlertCircle className="w-3.5 h-3.5 mr-1 text-rose-500" aria-hidden="true" />,
     },
     'due-today': {
-      badge: 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/60 font-semibold',
-      icon: <Clock className="w-3.5 h-3.5 mr-1 text-amber-500" aria-hidden="true" />,
+      badge: 'bg-peach-100 text-brand-700 border-brand-500/30 dark:bg-[#24140E] dark:text-brand-300 dark:border-brand-900/40 font-semibold',
+      icon: <Clock className="w-3.5 h-3.5 mr-1 text-brand-500" aria-hidden="true" />,
     },
     upcoming: {
-      badge: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/80 dark:text-slate-300 dark:border-slate-700',
+      badge: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-[#181818] dark:text-[#B0B0B0] dark:border-[#292929]',
       icon: <Calendar className="w-3.5 h-3.5 mr-1 text-brand-500" aria-hidden="true" />,
     },
     normal: {
-      badge: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800/60 dark:text-slate-300 dark:border-slate-700',
+      badge: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-[#181818] dark:text-[#B0B0B0] dark:border-[#292929]',
       icon: <Calendar className="w-3.5 h-3.5 mr-1 text-slate-400" aria-hidden="true" />,
     },
     none: {

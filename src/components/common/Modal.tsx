@@ -123,7 +123,7 @@ export const Modal: React.FC<ModalProps> = ({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -132,15 +132,15 @@ export const Modal: React.FC<ModalProps> = ({
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className={`relative w-full ${maxWidthClass} bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform transition-all z-10 focus:outline-none`}
+        className={`relative w-full ${maxWidthClass} bg-white dark:bg-[#111111] rounded-2xl shadow-2xl border border-slate-200 dark:border-[#292929] overflow-hidden transform transition-all z-10 focus:outline-none`}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-[#292929]">
           <div>
-            <h2 id="modal-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <h2 id="modal-title" className="text-lg font-bold text-charcoal-900 dark:text-[#F5F5F5]">
               {title}
             </h2>
             {description && (
-              <p id="modal-description" className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              <p id="modal-description" className="text-sm text-slate-500 dark:text-[#808080] mt-0.5">
                 {description}
               </p>
             )}
@@ -149,7 +149,7 @@ export const Modal: React.FC<ModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-charcoal-900 dark:text-[#808080] dark:hover:text-[#F5F5F5] hover:bg-slate-100 dark:hover:bg-[#181818] transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
               aria-label="Close dialog"
             >
               <X className="w-5 h-5" aria-hidden="true" />
@@ -157,7 +157,7 @@ export const Modal: React.FC<ModalProps> = ({
           )}
         </div>
 
-        <div className="p-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
+        <div className="p-6 max-h-[calc(100vh-12rem)] overflow-y-auto custom-scrollbar">
           {children}
         </div>
       </div>
