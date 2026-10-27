@@ -2,6 +2,35 @@ import { UserTask, TaskExportPayload } from '../types/task';
 import { getLocalTodayString } from '../utils/dates';
 import { validateImportJson } from '../utils/validation';
 
+/**
+ * Generates a unique task ID that does not exist in allocatedIds.
+ * Uses crypto.randomUUID() when available, with a collision-resistant fallback
+ * and bounded retry strategy to prevent infinite loops with mocked generators.
+ */
+export function generateUniqueId(allocatedIds: Set<string>): string {
+  const MAX_ATTEMPTS = 50;
+  for (let i = 0; i < MAX_ATTEMPTS; i++) {
+    const candidate =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `task-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    if (!allocatedIds.has(candidate)) {
+      return candidate;
+    }
+  }
+
+  // Deterministic final fallback: Monotonic timestamp + counter + random suffix
+  let counter = 1;
+  while (counter <= 1000) {
+    const deterministicId = `task-import-${Date.now()}-${counter++}-${Math.random().toString(36).slice(2, 7)}`;
+    if (!allocatedIds.has(deterministicId)) {
+      return deterministicId;
+    }
+  }
+
+  throw new Error('Unable to allocate unique task identifier.');
+}
+
 export function exportTasksAsJson(tasks: readonly UserTask[]): boolean {
   try {
     const todayStr = getLocalTodayString();
@@ -47,7 +76,8 @@ export interface ImportResult {
 /**
  * Safely imports and merges tasks from a user-provided JSON file.
  * All-or-nothing validation: if invalid, existing tasks remain untouched.
- * Resolves ID collisions safely by generating new UUIDs.
+ * Robust ID collision resolution guarantees uniqueness across existing
+ * tasks and intra-file duplicate IDs.
  */
 export async function importTasksFromJsonFile(
   file: File,
@@ -88,26 +118,34 @@ export async function importTasksFromJsonFile(
     };
   }
 
-  const existingIds = new Set(existingTasks.map((t) => t.id));
+  // Set containing all existing IDs and every accepted imported ID
+  const allocatedIds = new Set(existingTasks.map((t) => t.id));
   let collisionCount = 0;
+  const preparedImportedTasks: UserTask[] = [];
 
-  const preparedImportedTasks: UserTask[] = validation.tasks.map((task) => {
+  for (const task of validation.tasks) {
     let finalId = task.id;
-    if (existingIds.has(finalId)) {
-      // Collision detected! Generate new UUID to preserve both records safely
-      finalId =
-        typeof crypto !== 'undefined' && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `task-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      collisionCount++;
+    if (allocatedIds.has(finalId)) {
+      // Collision detected with an existing user task or previous record in this file
+      try {
+        finalId = generateUniqueId(allocatedIds);
+        collisionCount++;
+      } catch {
+        return {
+          success: false,
+          importedCount: 0,
+          collisionCount: 0,
+          mergedTasks: [...existingTasks],
+          error: 'Failed to allocate unique IDs for imported tasks. Import aborted to prevent data loss.',
+        };
+      }
     }
-    existingIds.add(finalId);
-
-    return {
+    allocatedIds.add(finalId);
+    preparedImportedTasks.push({
       ...task,
       id: finalId,
-    };
-  });
+    });
+  }
 
   // Merge valid imported tasks with existing user tasks (never replaces existing data)
   const mergedTasks = [...existingTasks, ...preparedImportedTasks];
