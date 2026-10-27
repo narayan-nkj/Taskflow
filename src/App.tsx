@@ -16,6 +16,7 @@ import { ConfirmModal } from './components/common/ConfirmModal';
 import { ImportModal } from './components/transfer/ImportModal';
 import { SampleTodosView } from './components/samples/SampleTodosView';
 import { ToastContainer, ToastMessage } from './components/common/Toast';
+import { LoadingScreen } from './components/common/LoadingScreen';
 import { useDeadlineAlerts } from './hooks/useDeadlineAlerts';
 import { loadMetricHistory, recordMetricSnapshot, MetricSnapshot } from './utils/metricHistory';
 import { UserTask, TaskPriority, TaskCategory, TaskStatus, TaskFiltersState } from './types/task';
@@ -53,6 +54,30 @@ export function App() {
 
   // Navigation tab: 'tasks' (Dashboard/My Tasks) | 'samples' (Sample Tasks from DummyJSON)
   const [currentTab, setCurrentTab] = useState<'tasks' | 'samples'>('tasks');
+
+  // Initial startup loading screen state
+  const [isLoadingVisible, setIsLoadingVisible] = useState(true);
+  const [isFadingOut, setIsFadingOut] = useState(false);
+
+  const handleLoadingComplete = () => {
+    setIsFadingOut(true);
+    setTimeout(() => {
+      setIsLoadingVisible(false);
+    }, 350);
+  };
+
+  useEffect(() => {
+    // Fallback safety timer: ensure application displays even if timer throttles in background
+    const safetyTimer = setTimeout(() => {
+      setIsFadingOut(true);
+      const fadeTimer = setTimeout(() => {
+        setIsLoadingVisible(false);
+      }, 350);
+      return () => clearTimeout(fadeTimer);
+    }, 3800);
+
+    return () => clearTimeout(safetyTimer);
+  }, []);
 
   // Search, Filters & Sorting state
   const [filters, setFilters] = useState<TaskFiltersState>(DEFAULT_FILTERS);
@@ -505,6 +530,15 @@ export function App() {
 
       {/* Toast Notifications Container */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
+      {/* Initial Startup Loading Screen */}
+      {isLoadingVisible && (
+        <LoadingScreen
+          isDark={isDark}
+          isFadingOut={isFadingOut}
+          onComplete={handleLoadingComplete}
+        />
+      )}
     </div>
   );
 }
