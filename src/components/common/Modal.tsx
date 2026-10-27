@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -8,7 +8,16 @@ interface ModalProps {
   description?: string;
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
+  hideCloseButton?: boolean;
 }
+
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]):not([aria-hidden="true"]), ' +
+  '[href]:not([aria-hidden="true"]), ' +
+  'input:not([disabled]):not([type="hidden"]):not([aria-hidden="true"]), ' +
+  'select:not([disabled]):not([aria-hidden="true"]), ' +
+  'textarea:not([disabled]):not([aria-hidden="true"]), ' +
+  '[tabindex]:not([tabindex="-1"]):not([disabled]):not([aria-hidden="true"])';
 
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
@@ -17,6 +26,7 @@ export const Modal: React.FC<ModalProps> = ({
   description,
   children,
   maxWidth = 'md',
+  hideCloseButton = false,
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
@@ -26,14 +36,24 @@ export const Modal: React.FC<ModalProps> = ({
     if (isOpen) {
       previousActiveElement.current = document.activeElement as HTMLElement;
 
-      // Trap/focus first focusable element
+      // Focus first enabled interactive element or fall back to modal surface
       const timer = setTimeout(() => {
         if (dialogRef.current) {
-          const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          const autoFocusElement = dialogRef.current.querySelector<HTMLElement>('[autofocus]:not([disabled]):not([aria-hidden="true"])');
+          const firstEnabledInput = dialogRef.current.querySelector<HTMLElement>(
+            'input:not([disabled]):not([type="hidden"]):not([aria-hidden="true"]), textarea:not([disabled]):not([aria-hidden="true"]), select:not([disabled]):not([aria-hidden="true"])'
           );
-          if (focusable.length > 0) {
+          const focusable = dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+
+          if (autoFocusElement) {
+            autoFocusElement.focus();
+          } else if (firstEnabledInput) {
+            firstEnabledInput.focus();
+          } else if (focusable.length > 0) {
             focusable[0].focus();
+          } else {
+            // Safe fallback focus target on the dialog surface
+            dialogRef.current.focus();
           }
         }
       }, 50);
@@ -46,16 +66,18 @@ export const Modal: React.FC<ModalProps> = ({
 
         // Focus trap
         if (e.key === 'Tab' && dialogRef.current) {
-          const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-          );
-          if (focusable.length === 0) return;
+          const focusable = dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+          if (focusable.length === 0) {
+            e.preventDefault();
+            dialogRef.current.focus();
+            return;
+          }
 
           const first = focusable[0];
           const last = focusable[focusable.length - 1];
 
           if (e.shiftKey) {
-            if (document.activeElement === first) {
+            if (document.activeElement === first || document.activeElement === dialogRef.current) {
               e.preventDefault();
               last.focus();
             }
@@ -75,7 +97,7 @@ export const Modal: React.FC<ModalProps> = ({
         clearTimeout(timer);
         document.removeEventListener('keydown', handleKeyDown);
         document.body.style.overflow = '';
-        if (previousActiveElement.current) {
+        if (previousActiveElement.current && typeof previousActiveElement.current.focus === 'function') {
           previousActiveElement.current.focus();
         }
       };
@@ -106,10 +128,11 @@ export const Modal: React.FC<ModalProps> = ({
         aria-hidden="true"
       />
 
-      {/* Modal Surface */}
+      {/* Modal Surface with tabIndex={-1} for fallback focus */}
       <div
         ref={dialogRef}
-        className={`relative w-full ${maxWidthClass} bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform transition-all z-10`}
+        tabIndex={-1}
+        className={`relative w-full ${maxWidthClass} bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform transition-all z-10 focus:outline-none`}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
           <div>
@@ -122,14 +145,16 @@ export const Modal: React.FC<ModalProps> = ({
               </p>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
-            aria-label="Close dialog"
-          >
-            <X className="w-5 h-5" aria-hidden="true" />
-          </button>
+          {!hideCloseButton && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
+              aria-label="Close dialog"
+            >
+              <X className="w-5 h-5" aria-hidden="true" />
+            </button>
+          )}
         </div>
 
         <div className="p-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
