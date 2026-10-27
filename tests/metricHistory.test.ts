@@ -56,4 +56,41 @@ describe('metricHistory utility', () => {
     expect(history[1].date).toBe('2026-10-27');
     expect(history[1].total).toBe(6);
   });
+
+  it('safely recovers from corrupted localStorage data', () => {
+    localStorage.setItem('taskflow_metrics_history_v1', 'not valid json{{{{');
+    const history = loadMetricHistory();
+    expect(history).toEqual([]);
+  });
+
+  it('defensively filters out malformed snapshot entries', () => {
+    localStorage.setItem(
+      'taskflow_metrics_history_v1',
+      JSON.stringify([
+        { date: '2026-10-20', total: 5 }, // missing timestamp, completed, pending
+        null,
+        'string',
+        { timestamp: 123, date: '2026-10-21', total: 4, completed: 2, pending: 2 },
+      ])
+    );
+    const history = loadMetricHistory();
+    expect(history).toHaveLength(1);
+    expect(history[0].date).toBe('2026-10-21');
+  });
+
+  it('bounds retention window to maximum 14 snapshots', () => {
+    for (let i = 1; i <= 20; i++) {
+      const dayStr = i < 10 ? `2026-10-0${i}` : `2026-10-${i}`;
+      recordMetricSnapshot(
+        {
+          ...sampleStats,
+          total: i,
+        },
+        dayStr
+      );
+    }
+    const history = loadMetricHistory();
+    expect(history.length).toBeLessThanOrEqual(14);
+    expect(history[history.length - 1].total).toBe(20);
+  });
 });

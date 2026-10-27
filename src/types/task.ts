@@ -20,6 +20,7 @@ export interface UserTask {
   createdAt: string; // ISO 8601 string
   updatedAt: string; // ISO 8601 string
   subtasks?: Subtask[]; // optional checklist items, defaults to []
+  favorite?: boolean; // optional favorite flag, defaults to false
 }
 
 export type SortOption =
@@ -37,6 +38,7 @@ export interface TaskFiltersState {
   priority: TaskPriority | 'All';
   status: TaskStatus | 'All';
   sortBy: SortOption;
+  favoritesOnly: boolean;
 }
 
 export interface TaskExportPayload {

@@ -14,6 +14,7 @@ import {
   RotateCcw,
   Plus,
   Sparkles,
+  Star,
 } from 'lucide-react';
 import { TaskChecklist } from './TaskChecklist';
 
@@ -22,6 +23,7 @@ interface TaskDetailPanelProps {
   onEdit: (task: UserTask) => void;
   onDelete: (task: UserTask) => void;
   onToggleStatus: (id: string) => void;
+  onToggleFavorite?: (id: string) => void;
   onAddNewTask: () => void;
   // Subtasks actions
   onAddSubtask?: (taskId: string, title: string) => void;
@@ -40,6 +42,7 @@ export const TaskDetailPanel: React.FC<TaskDetailPanelProps> = ({
   onEdit,
   onDelete,
   onToggleStatus,
+  onToggleFavorite,
   onAddNewTask,
   onAddSubtask,
   onToggleSubtask,
@@ -57,9 +60,9 @@ export const TaskDetailPanel: React.FC<TaskDetailPanelProps> = ({
         aria-label="Task Details Panel"
         className="h-full min-h-0 flex flex-col justify-between gap-3 lg:overflow-hidden"
       >
-        <div className="flex-1 min-h-[220px] flex flex-col items-center justify-center p-6 sm:p-7 text-center rounded-2xl bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-[#202020] shadow-sm">
+        <div className="flex-1 min-h-[220px] flex flex-col items-center justify-center py-10 px-6 text-center">
           {/* Decorative Vector Graphic */}
-          <div className="w-12 h-12 rounded-2xl bg-peach-100 dark:bg-[#24140E] flex items-center justify-center text-brand-500 mb-2.5 shadow-inner">
+          <div className="w-12 h-12 rounded-2xl bg-peach-100 dark:bg-[#24140E] flex items-center justify-center text-brand-500 mb-2.5 shadow-sm">
             <Sparkles className="w-6 h-6 stroke-[1.5]" aria-hidden="true" />
           </div>
           <h3 className="text-sm sm:text-base font-bold text-charcoal-900 dark:text-[#F5F5F5]">
@@ -71,7 +74,7 @@ export const TaskDetailPanel: React.FC<TaskDetailPanelProps> = ({
           <button
             type="button"
             onClick={onAddNewTask}
-            className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-[#292929] bg-slate-50 dark:bg-[#181818] hover:bg-slate-100 dark:hover:bg-[#202020] text-charcoal-900 dark:text-[#F5F5F5] text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-[#292929] bg-white dark:bg-[#181818] hover:bg-slate-50 dark:hover:bg-[#202020] text-charcoal-900 dark:text-[#F5F5F5] text-xs font-semibold shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" aria-hidden="true" />
             <span>Create New Task</span>
@@ -143,26 +146,22 @@ export const TaskDetailPanel: React.FC<TaskDetailPanelProps> = ({
       aria-label="Selected Task Details Panel"
       className="h-full min-h-0 flex flex-col justify-between gap-3 lg:overflow-hidden"
     >
-      {/* Standalone Task Detail Card */}
-      <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-[#202020] rounded-2xl p-4 sm:p-5 shadow-sm overflow-hidden">
+      {/* Integrated Task Detail Panel Surface */}
+      <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-[#111111] border border-slate-200/70 dark:border-[#222222] rounded-2xl p-4 sm:p-5 shadow-xs overflow-hidden">
         {/* Scrollable Main Content of Task Details */}
         <div className="flex-1 min-h-0 overflow-y-auto space-y-3.5 pr-1 custom-scrollbar">
-          {/* Contained Top Illustration Banner */}
-          <div className="w-full h-28 sm:h-32 rounded-xl bg-gradient-to-tr from-peach-100 via-brand-50 to-orange-100/70 dark:from-[#181818] dark:via-[#141414] dark:to-[#24140E] border border-brand-200/40 dark:border-[#292929] overflow-hidden relative flex items-center justify-center shrink-0">
-            {/* Subtle Abstract Geometry */}
-            <div className="absolute -right-4 -bottom-4 w-28 h-28 rounded-full bg-brand-500/10 dark:bg-brand-500/5 blur-xl pointer-events-none" />
-            <div className="flex items-center space-x-3 text-center px-4">
-              <div className="w-11 h-11 rounded-xl bg-white dark:bg-[#181818] border border-transparent dark:border-[#292929] shadow-sm flex items-center justify-center shrink-0">
-                <CategoryIcon category={task.category} className="w-5 h-5" />
-              </div>
-              <div className="text-left">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-                  Task Workspace
-                </span>
-                <p className="text-xs text-charcoal-800 dark:text-[#B0B0B0] font-medium mt-0.5">
-                  Active Commitment
-                </p>
-              </div>
+          {/* Integrated Category Context Strip */}
+          <div className="flex items-center space-x-2.5 pb-0.5">
+            <div className="w-8 h-8 rounded-xl bg-peach-100 dark:bg-[#24140E] border border-brand-200/50 dark:border-brand-900/40 flex items-center justify-center shrink-0 shadow-xs">
+              <CategoryIcon category={task.category} className="w-4 h-4 text-brand-500" />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                Task Workspace
+              </span>
+              <p className="text-[11px] text-slate-400 dark:text-[#808080] font-medium leading-none mt-0.5">
+                Active Commitment
+              </p>
             </div>
           </div>
 
@@ -183,6 +182,12 @@ export const TaskDetailPanel: React.FC<TaskDetailPanelProps> = ({
               >
                 {task.status}
               </span>
+              {task.favorite && (
+                <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200/80 dark:border-amber-900/40">
+                  <Star className="w-3 h-3 fill-amber-500 text-amber-500" aria-hidden="true" />
+                  <span>Favorite</span>
+                </span>
+              )}
             </div>
           </div>
 
@@ -242,6 +247,33 @@ export const TaskDetailPanel: React.FC<TaskDetailPanelProps> = ({
                 </>
               )}
             </button>
+
+            {/* Favorite Button */}
+            {onToggleFavorite && (
+              <button
+                type="button"
+                onClick={() => onToggleFavorite(task.id)}
+                className={`p-2.5 rounded-xl border transition-colors flex items-center justify-center min-w-[42px] min-h-[42px] focus-visible:ring-2 focus-visible:ring-amber-500 ${
+                  task.favorite
+                    ? 'border-amber-300 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/60'
+                    : 'border-slate-200 dark:border-[#292929] hover:bg-slate-100 dark:hover:bg-[#181818] text-slate-700 dark:text-[#B0B0B0]'
+                }`}
+                title={task.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                aria-label={
+                  task.favorite
+                    ? `Remove "${task.title}" from favorites`
+                    : `Add "${task.title}" to favorites`
+                }
+                aria-pressed={Boolean(task.favorite)}
+              >
+                <Star
+                  className={`w-4 h-4 transition-transform ${
+                    task.favorite ? 'fill-amber-500 text-amber-500 scale-105' : 'fill-none text-current'
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
+            )}
 
             {/* Edit Button */}
             <button

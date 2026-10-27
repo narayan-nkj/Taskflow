@@ -126,6 +126,11 @@ export function isValidUserTask(obj: unknown): obj is UserTask {
     }
   }
 
+  // Defensive validation of favorite flag if present
+  if (candidate.favorite !== undefined && typeof candidate.favorite !== 'boolean') {
+    return false;
+  }
+
   return true;
 }
 
@@ -210,9 +215,18 @@ export function validateImportJson(rawContent: string): ImportValidationResult {
         errorMessage: `Task record at index ${i} is invalid or has malformed fields. Import stopped to prevent corrupting data.`,
       };
     }
+    const rawRecord = item as unknown as Record<string, unknown>;
+    const isFav =
+      typeof item.favorite === 'boolean'
+        ? item.favorite
+        : typeof rawRecord.isFavorite === 'boolean'
+        ? rawRecord.isFavorite
+        : false;
+
     validTasks.push({
       ...item,
       subtasks: Array.isArray(item.subtasks) ? item.subtasks : [],
+      favorite: isFav,
     });
   }
 

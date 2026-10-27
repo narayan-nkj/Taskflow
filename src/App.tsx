@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTheme } from './hooks/useTheme';
 import { useTasks } from './hooks/useTasks';
 import { useAdvice } from './hooks/useAdvice';
@@ -16,7 +16,6 @@ import { ConfirmModal } from './components/common/ConfirmModal';
 import { ImportModal } from './components/transfer/ImportModal';
 import { SampleTodosView } from './components/samples/SampleTodosView';
 import { ToastContainer, ToastMessage } from './components/common/Toast';
-import { LoadingScreen } from './components/common/LoadingScreen';
 import { useDeadlineAlerts } from './hooks/useDeadlineAlerts';
 import { loadMetricHistory, recordMetricSnapshot, MetricSnapshot } from './utils/metricHistory';
 import { UserTask, TaskPriority, TaskCategory, TaskStatus, TaskFiltersState } from './types/task';
@@ -40,6 +39,7 @@ export function App() {
     restoreTask,
     toggleTaskStatus,
     setTaskStatus,
+    toggleFavorite,
     clearCompletedTasks,
     setAllTasks,
     addSubtask,
@@ -58,30 +58,6 @@ export function App() {
 
   // Navigation tab: 'tasks' (Dashboard/My Tasks) | 'samples' (Sample Tasks from DummyJSON)
   const [currentTab, setCurrentTab] = useState<'tasks' | 'samples'>('tasks');
-
-  // Initial startup loading screen state
-  const [isLoadingVisible, setIsLoadingVisible] = useState(true);
-  const [isFadingOut, setIsFadingOut] = useState(false);
-
-  const handleLoadingComplete = () => {
-    setIsFadingOut(true);
-    setTimeout(() => {
-      setIsLoadingVisible(false);
-    }, 350);
-  };
-
-  useEffect(() => {
-    // Fallback safety timer: ensure application displays even if timer throttles in background
-    const safetyTimer = setTimeout(() => {
-      setIsFadingOut(true);
-      const fadeTimer = setTimeout(() => {
-        setIsLoadingVisible(false);
-      }, 350);
-      return () => clearTimeout(fadeTimer);
-    }, 3800);
-
-    return () => clearTimeout(safetyTimer);
-  }, []);
 
   // Search, Filters & Sorting state
   const [filters, setFilters] = useState<TaskFiltersState>(DEFAULT_FILTERS);
@@ -133,6 +109,12 @@ export function App() {
     setMetricHistory(updated);
   }, [statistics, todayYmd]);
 
+  // Proactive alert selection handler
+  const handleSelectTaskFromAlert = useCallback((taskId: string) => {
+    setSelectedTaskId(taskId);
+    setSelectedDate(null); // Clear single-day filter so selected task is visible in list
+  }, []);
+
   // Deadline alerts and notification center
   const {
     alerts: deadlineAlerts,
@@ -142,7 +124,12 @@ export function App() {
     clearAllAlerts: clearAllDeadlineAlerts,
     browserPermission,
     requestBrowserPermission,
-  } = useDeadlineAlerts(tasks);
+  } = useDeadlineAlerts(tasks, {
+    onNotifyToast: (toast) => {
+      addToast(toast.type, toast.message, toast.action);
+    },
+    onSelectTask: handleSelectTaskFromAlert,
+  });
 
   // Filter and sort user tasks deterministically with date filtering
   const filteredAndSortedTasks = useMemo(() => {
@@ -182,12 +169,30 @@ export function App() {
 
   // Section title for TaskList
   const sectionTitle = useMemo(() => {
+    if (filters.favoritesOnly) {
+      return 'Favorite Tasks';
+    }
     if (selectedDate) {
       const display = formatDisplayDate(selectedDate);
       return display === 'Today' ? 'Today' : `Tasks for ${display}`;
     }
     return 'My Tasks';
-  }, [selectedDate]);
+  }, [filters.favoritesOnly, selectedDate]);
+
+  // Favorite toggle handler with toast announcement
+  const handleToggleFavorite = (id: string) => {
+    const target = tasks.find((t) => t.id === id);
+    const wasFavorite = target?.favorite ?? false;
+    toggleFavorite(id);
+    if (target) {
+      addToast(
+        'info',
+        wasFavorite
+          ? `Removed "${target.title}" from favorites`
+          : `Added "${target.title}" to favorites`
+      );
+    }
+  };
 
   // Handlers for task form
   const handleOpenCreateModal = (presetDueDate?: string | null) => {
@@ -451,6 +456,7 @@ export function App() {
                       }}
                       onToggleStatus={toggleTaskStatus}
                       onStatusChange={setTaskStatus}
+                      onToggleFavorite={handleToggleFavorite}
                       onEdit={handleOpenEditModal}
                       onDelete={handlePromptDelete}
                       onClearCompletedClick={() => setIsClearCompletedOpen(true)}
@@ -470,6 +476,7 @@ export function App() {
                     onEdit={handleOpenEditModal}
                     onDelete={handlePromptDelete}
                     onToggleStatus={toggleTaskStatus}
+                    onToggleFavorite={handleToggleFavorite}
                     onAddNewTask={() => handleOpenCreateModal(selectedDate)}
                     onAddSubtask={addSubtask}
                     onToggleSubtask={toggleSubtask}
@@ -542,15 +549,6 @@ export function App() {
 
       {/* Toast Notifications Container */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-
-      {/* Initial Startup Loading Screen */}
-      {isLoadingVisible && (
-        <LoadingScreen
-          isDark={isDark}
-          isFadingOut={isFadingOut}
-          onComplete={handleLoadingComplete}
-        />
-      )}
     </div>
   );
 }

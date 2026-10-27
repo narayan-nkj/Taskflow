@@ -125,4 +125,42 @@ describe('storage utilities with robust guardrails', () => {
     expect(loadThemeFromStorage()).toBe('system');
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBeNull();
   });
+
+  it('safely defaults old localStorage records without a favorite property to false', () => {
+    const legacyRecord = {
+      id: 'legacy-1',
+      title: 'Legacy task without favorite',
+      priority: 'High',
+      category: 'GDG',
+      dueDate: '2026-10-30',
+      status: 'Pending',
+      createdAt: '2026-10-27T10:00:00.000Z',
+      updatedAt: '2026-10-27T10:00:00.000Z',
+    };
+    window.localStorage.setItem(USER_TASKS_STORAGE_KEY, JSON.stringify([legacyRecord]));
+
+    const res = loadUserTasksFromStorage();
+    expect(res.hadCorruption).toBe(false);
+    expect(res.data).toHaveLength(1);
+    expect(res.data[0].id).toBe('legacy-1');
+    expect(res.data[0].favorite).toBe(false);
+  });
+
+  it('persists and restores favorite: true without losing other task attributes', () => {
+    const favoriteTask: UserTask = {
+      ...validTask,
+      id: 'fav-1',
+      title: 'Star Project',
+      favorite: true,
+    };
+    const saveRes = saveUserTasksToStorage([favoriteTask]);
+    expect(saveRes.success).toBe(true);
+
+    const loadRes = loadUserTasksFromStorage();
+    expect(loadRes.hadCorruption).toBe(false);
+    expect(loadRes.data).toHaveLength(1);
+    expect(loadRes.data[0].favorite).toBe(true);
+    expect(loadRes.data[0].title).toBe('Star Project');
+    expect(loadRes.data[0].status).toBe('Pending');
+  });
 });

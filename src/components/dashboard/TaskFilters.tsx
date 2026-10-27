@@ -7,7 +7,7 @@ import {
   hasAnyActiveControls,
   getActiveFilterCount,
 } from '../../utils/filtering';
-import { Search, RotateCcw, X, Filter } from 'lucide-react';
+import { Search, RotateCcw, X, Filter, Star } from 'lucide-react';
 
 interface TaskFiltersProps {
   filters: TaskFiltersState;
@@ -35,6 +35,10 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
     onChange({ ...filters, search: '' });
   };
 
+  const handleToggleFavorites = () => {
+    onChange({ ...filters, favoritesOnly: !filters.favoritesOnly });
+  };
+
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onChange({ ...filters, category: e.target.value as TaskCategory | 'All' });
   };
@@ -57,7 +61,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
   return (
     <div className="space-y-3 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-[#292929] shadow-sm">
-      {/* Top row: Search input & Clear/Reset button */}
+      {/* Top row: Search input & Favorites toggle & Clear/Reset button */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         {/* Search bar */}
         <div className="relative flex-1">
@@ -83,6 +87,30 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             </button>
           )}
         </div>
+
+        {/* Favorites Only filter button */}
+        <button
+          type="button"
+          onClick={handleToggleFavorites}
+          aria-pressed={Boolean(filters.favoritesOnly)}
+          className={`inline-flex items-center justify-center px-3.5 py-2 text-xs font-semibold rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-amber-500 shrink-0 min-h-[40px] border ${
+            filters.favoritesOnly
+              ? 'bg-amber-100 dark:bg-[#281c0e] text-amber-900 dark:text-amber-300 border-amber-300 dark:border-amber-800/60 shadow-xs'
+              : 'bg-slate-50 dark:bg-[#181818] hover:bg-slate-100 dark:hover:bg-[#202020] text-slate-700 dark:text-[#B0B0B0] border-slate-200 dark:border-[#292929]'
+          }`}
+          aria-label={filters.favoritesOnly ? 'Show all tasks (favorites filter active)' : 'Filter by favorites only'}
+          title={filters.favoritesOnly ? 'Show all tasks' : 'Filter by favorites only'}
+        >
+          <Star
+            className={`w-3.5 h-3.5 mr-1.5 ${
+              filters.favoritesOnly
+                ? 'fill-amber-500 text-amber-500'
+                : 'fill-none text-slate-400 dark:text-[#808080]'
+            }`}
+            aria-hidden="true"
+          />
+          <span>Favorites</span>
+        </button>
 
         {/* Clear Filters / Reset Sort button */}
         {anyControlsActive && (
@@ -207,6 +235,13 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
           {filters.status !== 'All' && (
             <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#181818] text-slate-700 dark:text-[#B0B0B0] border border-slate-200/60 dark:border-[#292929]">
               Status: {filters.status}
+            </span>
+          )}
+
+          {filters.favoritesOnly && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-900/40">
+              <Star className="w-3 h-3 mr-1 fill-amber-500 text-amber-500" aria-hidden="true" />
+              Favorites Only
             </span>
           )}
 

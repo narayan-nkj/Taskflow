@@ -1,7 +1,7 @@
 import React from 'react';
 import { UserTask, TaskStatus, TaskFiltersState } from '../../types/task';
 import { TaskItem } from './TaskItem';
-import { Plus, CheckCheck, Inbox, SearchX, SlidersHorizontal } from 'lucide-react';
+import { Plus, CheckCheck, Inbox, SearchX, SlidersHorizontal, Star } from 'lucide-react';
 
 interface TaskListProps {
   tasks: UserTask[];
@@ -15,6 +15,7 @@ interface TaskListProps {
   onClearFilters: () => void;
   onToggleStatus: (id: string) => void;
   onStatusChange: (id: string, status: TaskStatus) => void;
+  onToggleFavorite?: (id: string) => void;
   onEdit: (task: UserTask) => void;
   onDelete: (task: UserTask) => void;
   onClearCompletedClick: () => void;
@@ -28,6 +29,7 @@ interface TaskListProps {
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
   totalTasksCount,
+  filters,
   completedTasksCount,
   sectionTitle = 'All Tasks',
   selectedTaskId = null,
@@ -36,6 +38,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   onClearFilters,
   onToggleStatus,
   onStatusChange,
+  onToggleFavorite,
   onEdit,
   onDelete,
   onClearCompletedClick,
@@ -48,8 +51,8 @@ export const TaskList: React.FC<TaskListProps> = ({
   // State 1: No user tasks created yet (Empty Dashboard)
   if (totalTasksCount === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[220px] text-center rounded-2xl border border-dashed border-slate-200/90 dark:border-[#262626] bg-white/50 dark:bg-[#111111]/30 backdrop-blur-sm">
-        <div className="w-10 h-10 rounded-xl bg-peach-100 dark:bg-[#24140E] text-brand-500 flex items-center justify-center mb-2.5 shadow-inner">
+      <div className="flex-1 flex flex-col items-center justify-center py-12 px-6 min-h-[220px] text-center">
+        <div className="w-10 h-10 rounded-xl bg-peach-100 dark:bg-[#24140E] text-brand-500 flex items-center justify-center mb-2.5 shadow-sm">
           <Inbox className="w-5 h-5" aria-hidden="true" />
         </div>
         <h3 className="text-sm sm:text-base font-bold text-charcoal-900 dark:text-[#F5F5F5] mb-1">
@@ -61,7 +64,7 @@ export const TaskList: React.FC<TaskListProps> = ({
         <button
           type="button"
           onClick={onAddTaskClick}
-          className="inline-flex items-center px-3.5 py-2 text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="inline-flex items-center px-4 py-2 text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           <Plus className="w-3.5 h-3.5 mr-1.5 stroke-[2.5]" aria-hidden="true" />
           Create your first task
@@ -70,10 +73,34 @@ export const TaskList: React.FC<TaskListProps> = ({
     );
   }
 
+  // State 2: Filtered by favorites with no starred tasks
+  if (filters.favoritesOnly && tasks.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center py-12 px-6 min-h-[220px] text-center">
+        <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 flex items-center justify-center mb-2.5 shadow-sm">
+          <Star className="w-5 h-5 fill-amber-500 text-amber-500" aria-hidden="true" />
+        </div>
+        <h3 className="text-sm sm:text-base font-bold text-charcoal-900 dark:text-[#F5F5F5] mb-1">
+          No favorite tasks yet
+        </h3>
+        <p className="text-xs text-slate-500 dark:text-[#808080] max-w-xs mb-3.5 leading-relaxed">
+          Click the star icon on any task to add it to your favorites for quick access.
+        </p>
+        <button
+          type="button"
+          onClick={onClearFilters}
+          className="inline-flex items-center px-3.5 py-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 bg-peach-100 dark:bg-[#24140E] hover:bg-peach-200 dark:hover:bg-[#2d1912] rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-brand-500"
+        >
+          View all tasks
+        </button>
+      </div>
+    );
+  }
+
   // State 3: Filtered or date-selected with no matching tasks
   if (tasks.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[220px] text-center rounded-2xl border border-dashed border-slate-200/90 dark:border-[#262626] bg-white/50 dark:bg-[#111111]/30 backdrop-blur-sm">
+      <div className="flex-1 flex flex-col items-center justify-center py-12 px-6 min-h-[220px] text-center">
         <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#181818] text-slate-400 dark:text-[#808080] flex items-center justify-center mb-2.5">
           <SearchX className="w-5 h-5" aria-hidden="true" />
         </div>
@@ -86,7 +113,7 @@ export const TaskList: React.FC<TaskListProps> = ({
         <button
           type="button"
           onClick={onClearFilters}
-          className="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 bg-peach-100 dark:bg-[#24140E] hover:bg-peach-200 rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="inline-flex items-center px-3.5 py-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 bg-peach-100 dark:bg-[#24140E] hover:bg-peach-200 dark:hover:bg-[#2d1912] rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           View all tasks
         </button>
@@ -164,6 +191,7 @@ export const TaskList: React.FC<TaskListProps> = ({
             onSelectTask={onSelectTask}
             onToggleStatus={onToggleStatus}
             onStatusChange={onStatusChange}
+            onToggleFavorite={onToggleFavorite}
             onEdit={onEdit}
             onDelete={onDelete}
             onAddSubtask={onAddSubtask}

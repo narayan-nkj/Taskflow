@@ -200,4 +200,56 @@ describe('useTasks hook', () => {
     expect(deleted?.id).toBe('p1');
     expect(result.current.tasks).toHaveLength(0);
   });
+
+  it('toggles favorite on a task without modifying other task fields', () => {
+    const { result } = renderHook(() => useTasks());
+
+    const taskWithSubtasks: UserTask = {
+      ...sampleTask,
+      id: 'fav-task-1',
+      title: 'Prepare GDG Slides',
+      priority: 'High',
+      category: 'GDG',
+      dueDate: '2026-10-31',
+      status: 'In Progress',
+      favorite: false,
+      subtasks: [
+        {
+          id: 'sub-1',
+          title: 'Draft outlines',
+          completed: false,
+          createdAt: '2026-10-27T10:00:00.000Z',
+          updatedAt: '2026-10-27T10:00:00.000Z',
+        },
+      ],
+    };
+
+    act(() => {
+      result.current.setAllTasks([taskWithSubtasks]);
+    });
+
+    expect(result.current.tasks[0].favorite).toBe(false);
+
+    // Toggle to true
+    let toggled: boolean;
+    act(() => {
+      toggled = result.current.toggleFavorite('fav-task-1');
+    });
+
+    expect(toggled!).toBe(true);
+    const updated = result.current.tasks[0];
+    expect(updated.favorite).toBe(true);
+    // Crucial check: status, priority, category, dueDate, subtasks must not change
+    expect(updated.status).toBe('In Progress');
+    expect(updated.priority).toBe('High');
+    expect(updated.category).toBe('GDG');
+    expect(updated.dueDate).toBe('2026-10-31');
+    expect(updated.subtasks).toHaveLength(1);
+
+    // Toggle back to false
+    act(() => {
+      result.current.toggleFavorite('fav-task-1');
+    });
+    expect(result.current.tasks[0].favorite).toBe(false);
+  });
 });

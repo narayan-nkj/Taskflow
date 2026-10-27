@@ -147,3 +147,68 @@ describe('TaskDetailPanel component', () => {
     expect(handleDelete).toHaveBeenCalledWith(mockTask);
   });
 });
+
+import { TaskList } from '../src/components/dashboard/TaskList';
+import { DEFAULT_FILTERS } from '../src/utils/filtering';
+
+describe('TaskList Open Canvas Empty States', () => {
+  it('renders open canvas empty state without dashed boxed container when totalTasksCount === 0', () => {
+    const handleAddTask = vi.fn();
+    const { container } = render(
+      <TaskList
+        tasks={[]}
+        totalTasksCount={0}
+        completedTasksCount={0}
+        filters={DEFAULT_FILTERS}
+        onAddTaskClick={handleAddTask}
+        onClearFilters={vi.fn()}
+        onToggleStatus={vi.fn()}
+        onStatusChange={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onClearCompletedClick={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('No tasks captured yet')).toBeInTheDocument();
+    expect(
+      screen.getByText(/TaskFlow gives you one calm place to track assignments/i)
+    ).toBeInTheDocument();
+
+    const createBtn = screen.getByRole('button', { name: /create your first task/i });
+    expect(createBtn).toBeInTheDocument();
+    fireEvent.click(createBtn);
+    expect(handleAddTask).toHaveBeenCalledTimes(1);
+
+    // Verify absence of dashed bordered box
+    expect(container.querySelector('.border-dashed')).toBeNull();
+  });
+
+  it('renders open canvas no-results state without dashed boxed container when filtered tasks === 0', () => {
+    const handleClearFilters = vi.fn();
+    const { container } = render(
+      <TaskList
+        tasks={[]}
+        totalTasksCount={5}
+        completedTasksCount={2}
+        filters={DEFAULT_FILTERS}
+        onAddTaskClick={vi.fn()}
+        onClearFilters={handleClearFilters}
+        onToggleStatus={vi.fn()}
+        onStatusChange={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onClearCompletedClick={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('No tasks found for this view')).toBeInTheDocument();
+    const resetBtn = screen.getByRole('button', { name: /view all tasks/i });
+    expect(resetBtn).toBeInTheDocument();
+    fireEvent.click(resetBtn);
+    expect(handleClearFilters).toHaveBeenCalledTimes(1);
+
+    // Verify absence of dashed bordered box
+    expect(container.querySelector('.border-dashed')).toBeNull();
+  });
+});

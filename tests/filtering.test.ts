@@ -128,5 +128,39 @@ describe('filtering utilities & sorting separation', () => {
       expect(getActiveFilterCount(filters)).toBe(2);
       expect(filterTasks(sampleTasks, filters)).toHaveLength(0);
     });
+
+    it('filters strictly by favoritesOnly and updates active filter indicators', () => {
+      const tasksWithFavorites: UserTask[] = [
+        { ...sampleTasks[0], favorite: true },
+        { ...sampleTasks[1], favorite: false },
+        { ...sampleTasks[2] }, // legacy without favorite property
+      ];
+
+      const filters: TaskFiltersState = { ...DEFAULT_FILTERS, favoritesOnly: true };
+      expect(hasActiveFilters(filters)).toBe(true);
+      expect(getActiveFilterCount(filters)).toBe(1);
+
+      const res = filterTasks(tasksWithFavorites, filters);
+      expect(res).toHaveLength(1);
+      expect(res[0].id).toBe('1');
+    });
+
+    it('composes favoritesOnly with category, priority, and search filters', () => {
+      const tasksWithFavorites: UserTask[] = [
+        { ...sampleTasks[0], favorite: true }, // GDG, High
+        { ...sampleTasks[1], favorite: true },  // Academics, Medium
+        { ...sampleTasks[2], favorite: false }, // Personal, Low
+      ];
+
+      const filters: TaskFiltersState = {
+        ...DEFAULT_FILTERS,
+        favoritesOnly: true,
+        category: 'GDG',
+      };
+      const res = filterTasks(tasksWithFavorites, filters);
+      expect(res).toHaveLength(1);
+      expect(res[0].id).toBe('1');
+      expect(getActiveFilterCount(filters)).toBe(2);
+    });
   });
 });

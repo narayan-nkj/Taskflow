@@ -80,9 +80,18 @@ export function loadUserTasksFromStorage(): StorageLoadResult<UserTask[]> {
 
     for (const item of parsed) {
       if (isValidUserTask(item)) {
+        const rawRecord = item as unknown as Record<string, unknown>;
+        const isFav =
+          typeof item.favorite === 'boolean'
+            ? item.favorite
+            : typeof rawRecord.isFavorite === 'boolean'
+            ? rawRecord.isFavorite
+            : false;
+
         validTasks.push({
           ...item,
           subtasks: Array.isArray(item.subtasks) ? item.subtasks : [],
+          favorite: isFav,
         });
       } else {
         corruptedCount++;

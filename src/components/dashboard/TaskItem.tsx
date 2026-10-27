@@ -5,7 +5,7 @@ import { getSubtaskProgress } from '../../utils/subtasks';
 import { CategoryBadge, PriorityBadge, DeadlineBadge } from '../common/Badge';
 import { CategoryIcon } from '../common/CategoryIcon';
 import { TaskChecklist } from './TaskChecklist';
-import { Check, Edit2, Trash2, CheckSquare, ChevronDown } from 'lucide-react';
+import { Check, Edit2, Trash2, CheckSquare, ChevronDown, Star } from 'lucide-react';
 
 interface TaskItemProps {
   task: UserTask;
@@ -13,6 +13,7 @@ interface TaskItemProps {
   onSelectTask?: (task: UserTask) => void;
   onToggleStatus: (id: string) => void;
   onStatusChange: (id: string, status: TaskStatus) => void;
+  onToggleFavorite?: (id: string) => void;
   onEdit: (task: UserTask) => void;
   onDelete: (task: UserTask) => void;
   onAddSubtask?: (taskId: string, title: string) => void;
@@ -27,6 +28,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   onSelectTask,
   onToggleStatus,
   onStatusChange,
+  onToggleFavorite,
   onEdit,
   onDelete,
   onAddSubtask,
@@ -91,6 +93,15 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 label={deadlineInfo.label}
                 formattedDate={displayDate}
               />
+              {task.favorite && (
+                <span
+                  className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-900/40"
+                  title="Starred favorite"
+                >
+                  <Star className="w-2.5 h-2.5 mr-0.5 fill-amber-500 text-amber-500" aria-hidden="true" />
+                  Starred
+                </span>
+              )}
             </div>
 
             {/* Task Title */}
@@ -140,6 +151,38 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           >
             <Check className="w-4 h-4 stroke-[2.5]" aria-hidden="true" />
           </button>
+
+          {/* Favorite toggle button */}
+          {onToggleFavorite && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite(task.id);
+              }}
+              className={`p-1.5 rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-amber-500 min-w-[36px] min-h-[36px] flex items-center justify-center ${
+                task.favorite
+                  ? 'text-amber-500 hover:text-amber-600 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60'
+                  : 'text-slate-400 hover:text-amber-500 dark:text-[#808080] dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-[#202020]'
+              }`}
+              aria-label={
+                task.favorite
+                  ? `Remove "${task.title}" from favorites`
+                  : `Add "${task.title}" to favorites`
+              }
+              aria-pressed={Boolean(task.favorite)}
+              title={task.favorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <Star
+                className={`w-4 h-4 transition-transform ${
+                  task.favorite
+                    ? 'fill-amber-500 text-amber-500 scale-105'
+                    : 'fill-none text-current'
+                }`}
+                aria-hidden="true"
+              />
+            </button>
+          )}
 
           {/* Edit Button */}
           <button

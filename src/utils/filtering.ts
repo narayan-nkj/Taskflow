@@ -6,10 +6,11 @@ export const DEFAULT_FILTERS: TaskFiltersState = {
   priority: 'All',
   status: 'All',
   sortBy: 'dueDate-asc',
+  favoritesOnly: false,
 };
 
 /**
- * Checks whether any search query or category/priority/status filter is actively applied.
+ * Checks whether any search query or category/priority/status/favorites filter is actively applied.
  * Excludes sorting, as sorting merely re-orders and does not filter out tasks.
  */
 export function hasActiveFilters(filters: TaskFiltersState): boolean {
@@ -17,7 +18,8 @@ export function hasActiveFilters(filters: TaskFiltersState): boolean {
     filters.search.trim() !== '' ||
     filters.category !== 'All' ||
     filters.priority !== 'All' ||
-    filters.status !== 'All'
+    filters.status !== 'All' ||
+    Boolean(filters.favoritesOnly)
   );
 }
 
@@ -44,6 +46,7 @@ export function getActiveFilterCount(filters: TaskFiltersState): number {
   if (filters.category !== 'All') count++;
   if (filters.priority !== 'All') count++;
   if (filters.status !== 'All') count++;
+  if (filters.favoritesOnly) count++;
   return count;
 }
 
@@ -57,6 +60,11 @@ export function filterTasks(
   const query = filters.search.trim().toLowerCase();
 
   return tasks.filter((task) => {
+    // Favorites-only filter
+    if (filters.favoritesOnly && !task.favorite) {
+      return false;
+    }
+
     // Search query filter (immediate case-insensitive title search)
     if (query && !task.title.toLowerCase().includes(query)) {
       return false;

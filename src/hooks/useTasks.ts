@@ -32,6 +32,7 @@ export function useTasks() {
       category: TaskCategory;
       dueDate: string | null;
       status?: TaskStatus;
+      favorite?: boolean;
     }): UserTask => {
       const nowIso = new Date().toISOString();
       const newTask: UserTask = {
@@ -47,6 +48,7 @@ export function useTasks() {
         createdAt: nowIso,
         updatedAt: nowIso,
         subtasks: [],
+        favorite: input.favorite ?? false,
       };
 
       setTasks((prev) => [newTask, ...prev]);
@@ -64,6 +66,7 @@ export function useTasks() {
         category?: TaskCategory;
         dueDate?: string | null;
         status?: TaskStatus;
+        favorite?: boolean;
       }
     ): boolean => {
       const exists = tasks.some((t) => t.id === id);
@@ -80,6 +83,7 @@ export function useTasks() {
               category: updates.category !== undefined ? updates.category : task.category,
               dueDate: updates.dueDate !== undefined ? updates.dueDate : task.dueDate,
               status: updates.status !== undefined ? updates.status : task.status,
+              favorite: updates.favorite !== undefined ? updates.favorite : task.favorite,
               updatedAt: nowIso,
             };
           }
@@ -306,6 +310,29 @@ export function useTasks() {
     []
   );
 
+  const toggleFavorite = useCallback(
+    (id: string): boolean => {
+      const exists = tasks.some((t) => t.id === id);
+      if (!exists) return false;
+
+      const nowIso = new Date().toISOString();
+      setTasks((prev) =>
+        prev.map((task) => {
+          if (task.id === id) {
+            return {
+              ...task,
+              favorite: !task.favorite,
+              updatedAt: nowIso,
+            };
+          }
+          return task;
+        })
+      );
+      return true;
+    },
+    [tasks]
+  );
+
   const dismissStorageNotice = useCallback(() => {
     setStorageNotice(null);
   }, []);
@@ -320,6 +347,7 @@ export function useTasks() {
     restoreTask,
     toggleTaskStatus,
     setTaskStatus,
+    toggleFavorite,
     clearCompletedTasks,
     setAllTasks,
     addSubtask,

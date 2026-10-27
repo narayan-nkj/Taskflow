@@ -221,9 +221,14 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
           {browserPermission !== 'unsupported' && (
             <div className="p-2.5 bg-slate-50 dark:bg-[#141414] border-t border-slate-100 dark:border-[#202020] text-center">
               {browserPermission === 'granted' ? (
-                <div className="flex items-center justify-center space-x-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                  <CheckCheck className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>Desktop reminders enabled</span>
+                <div className="flex flex-col items-center justify-center space-y-0.5 text-center">
+                  <div className="flex items-center space-x-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                    <CheckCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>Desktop reminders enabled</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 dark:text-[#808080]">
+                    Active while TaskFlow is open in your browser
+                  </p>
                 </div>
               ) : (
                 <button

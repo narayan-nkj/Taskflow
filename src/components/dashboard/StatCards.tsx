@@ -5,7 +5,6 @@ import { UserTask } from '../../types/task';
 import { Sparkline } from '../common/Sparkline';
 import { CircularProgress } from '../common/CircularProgress';
 import { PriorityDistributionBar } from '../common/PriorityDistributionBar';
-import { formatLocalYmd } from '../../utils/dates';
 import { CheckCircle2, Clock, ListTodo, TrendingUp } from 'lucide-react';
 
 interface StatCardsProps {
@@ -19,43 +18,50 @@ export const StatCards: React.FC<StatCardsProps> = ({
   history = [],
   tasks = [],
 }) => {
-  // 1. Total Tasks volume history (computed from real tasks or persisted snapshots)
-  const totalVolumeHistory = useMemo(() => {
-    if (history.length >= 2) {
-      return history.map((h) => h.total);
-    }
-    if (!tasks || tasks.length === 0) {
-      return [stats.total];
-    }
-    // Calculate cumulative task count over the past 7 days based on real task creation dates
-    const today = new Date();
-    const days: number[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      const ymd = formatLocalYmd(d);
-      const count = tasks.filter((t) => {
-        if (!t.createdAt) return true;
-        const createdYmd = t.createdAt.split('T')[0];
-        return createdYmd <= ymd;
-      }).length;
-      days.push(count);
-    }
-    return days;
-  }, [history, tasks, stats.total]);
+  // 1. Recorded task count history (strictly from verified persisted daily snapshots)
+  const { totalVolumeHistory, isHistoryBuilding } = useMemo(() => {
+    const validSnapshots = Array.isArray(history)
+      ? history.filter(
+          (h) =>
+            typeof h === 'object' &&
+            h !== null &&
+            typeof h.total === 'number' &&
+            !isNaN(h.total)
+        )
+      : [];
 
-  // 2. Pending tasks workload distribution by priority
+    if (validSnapshots.length >= 2) {
+      return {
+        totalVolumeHistory: validSnapshots.map((h) => h.total),
+        isHistoryBuilding: false,
+      };
+    }
+
+    if (validSnapshots.length === 1) {
+      return {
+        totalVolumeHistory: [validSnapshots[0].total],
+        isHistoryBuilding: true,
+      };
+    }
+
+    return {
+      totalVolumeHistory: [stats.total],
+      isHistoryBuilding: true,
+    };
+  }, [history, stats.total]);
+
+  // 2. Pending tasks workload distribution by priority (strictly status === 'Pending')
   const { pendingHigh, pendingMedium, pendingLow } = useMemo(() => {
     if (!tasks || tasks.length === 0) {
-      return { pendingHigh: 0, pendingMedium: stats.pending, pendingLow: 0 };
+      return { pendingHigh: 0, pendingMedium: 0, pendingLow: 0 };
     }
-    const pendingTasks = tasks.filter((t) => t.status !== 'Completed');
+    const pendingTasks = tasks.filter((t) => t.status === 'Pending');
     return {
       pendingHigh: pendingTasks.filter((t) => t.priority === 'High').length,
       pendingMedium: pendingTasks.filter((t) => t.priority === 'Medium').length,
       pendingLow: pendingTasks.filter((t) => t.priority === 'Low').length,
     };
-  }, [tasks, stats.pending]);
+  }, [tasks]);
 
   return (
     <section aria-labelledby="stats-heading" className="w-full space-y-2.5">
@@ -84,13 +90,24 @@ export const StatCards: React.FC<StatCardsProps> = ({
                 Total Tasks
               </p>
             </div>
-            <div className="shrink-0 pb-0.5" title="Task volume over recent days">
+            <div
+              className="shrink-0 pb-0.5"
+              title={
+                isHistoryBuilding
+                  ? `Recorded task count history (${stats.total} total, trend data is building)`
+                  : `Recorded task count history: ${totalVolumeHistory.join(', ')}`
+              }
+            >
               <Sparkline
                 data={totalVolumeHistory}
                 color="#eb642e"
                 width={56}
                 height={24}
-                ariaLabel={`Total task volume: ${totalVolumeHistory.join(', ')}`}
+                ariaLabel={
+                  isHistoryBuilding
+                    ? `Recorded task count: ${stats.total} (trend data is building)`
+                    : `Recorded task count history: ${totalVolumeHistory.join(', ')}`
+                }
               />
             </div>
           </div>

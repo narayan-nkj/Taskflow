@@ -43,6 +43,7 @@ export function exportTasksAsJson(tasks: readonly UserTask[]): boolean {
       tasks: tasks.map((t) => ({
         ...t,
         subtasks: Array.isArray(t.subtasks) ? t.subtasks.map((s) => ({ ...s })) : [],
+        favorite: Boolean(t.favorite),
       })),
     };
 
@@ -163,6 +164,7 @@ export async function importTasksFromJsonFile(
       ...task,
       id: finalId,
       subtasks: preparedSubtasks,
+      favorite: Boolean(task.favorite),
     });
   }
 

@@ -141,5 +141,56 @@ describe('importExport service & robust ID generation', () => {
       expect(res.mergedTasks[0]).toEqual(existingTask);
       expect(res.error).toBeDefined();
     });
+
+    it('preserves favorite states and defaults legacy imported tasks without favorite to false', async () => {
+      const fileContent = JSON.stringify({
+        schemaVersion: 1,
+        exportedAt: '2026-10-27T10:00:00.000Z',
+        appName: 'TaskFlow',
+        tasks: [
+          {
+            id: 'import-fav',
+            title: 'Favorited Task',
+            priority: 'High',
+            category: 'GDG',
+            dueDate: '2026-11-01',
+            status: 'Pending',
+            createdAt: '2026-10-27T10:00:00.000Z',
+            updatedAt: '2026-10-27T10:00:00.000Z',
+            favorite: true,
+          },
+          {
+            id: 'import-non-fav',
+            title: 'Regular Task',
+            priority: 'Medium',
+            category: 'Academics',
+            dueDate: null,
+            status: 'Pending',
+            createdAt: '2026-10-27T10:00:00.000Z',
+            updatedAt: '2026-10-27T10:00:00.000Z',
+            favorite: false,
+          },
+          {
+            id: 'import-legacy',
+            title: 'Legacy Task Without Favorite Field',
+            priority: 'Low',
+            category: 'Personal',
+            dueDate: null,
+            status: 'Completed',
+            createdAt: '2026-10-27T10:00:00.000Z',
+            updatedAt: '2026-10-27T10:00:00.000Z',
+          },
+        ],
+      });
+
+      const file = makeFile(fileContent);
+      const res = await importTasksFromJsonFile(file, []);
+
+      expect(res.success).toBe(true);
+      expect(res.importedCount).toBe(3);
+      expect(res.mergedTasks[0].favorite).toBe(true);
+      expect(res.mergedTasks[1].favorite).toBe(false);
+      expect(res.mergedTasks[2].favorite).toBe(false);
+    });
   });
 });
