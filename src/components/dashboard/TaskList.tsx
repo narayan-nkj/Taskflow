@@ -19,6 +19,10 @@ interface TaskListProps {
   onDelete: (task: UserTask) => void;
   onClearCompletedClick: () => void;
   onToggleFiltersToolbar?: () => void;
+  onAddSubtask?: (taskId: string, title: string) => void;
+  onToggleSubtask?: (taskId: string, subtaskId: string) => void;
+  onUpdateSubtask?: (taskId: string, subtaskId: string, title: string) => void;
+  onDeleteSubtask?: (taskId: string, subtaskId: string) => void;
 }
 
 export const TaskList: React.FC<TaskListProps> = ({
@@ -36,11 +40,15 @@ export const TaskList: React.FC<TaskListProps> = ({
   onDelete,
   onClearCompletedClick,
   onToggleFiltersToolbar,
+  onAddSubtask,
+  onToggleSubtask,
+  onUpdateSubtask,
+  onDeleteSubtask,
 }) => {
   // State 1: No user tasks created yet (Empty Dashboard)
   if (totalTasksCount === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-7 min-h-[220px] text-center rounded-2xl bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-[#292929] shadow-sm">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[220px] text-center rounded-2xl border border-dashed border-slate-200/90 dark:border-[#262626] bg-white/50 dark:bg-[#111111]/30 backdrop-blur-sm">
         <div className="w-10 h-10 rounded-xl bg-peach-100 dark:bg-[#24140E] text-brand-500 flex items-center justify-center mb-2.5 shadow-inner">
           <Inbox className="w-5 h-5" aria-hidden="true" />
         </div>
@@ -65,7 +73,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   // State 3: Filtered or date-selected with no matching tasks
   if (tasks.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-7 min-h-[220px] text-center rounded-2xl bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-[#292929] shadow-sm">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[220px] text-center rounded-2xl border border-dashed border-slate-200/90 dark:border-[#262626] bg-white/50 dark:bg-[#111111]/30 backdrop-blur-sm">
         <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#181818] text-slate-400 dark:text-[#808080] flex items-center justify-center mb-2.5">
           <SearchX className="w-5 h-5" aria-hidden="true" />
         </div>
@@ -158,6 +166,10 @@ export const TaskList: React.FC<TaskListProps> = ({
             onStatusChange={onStatusChange}
             onEdit={onEdit}
             onDelete={onDelete}
+            onAddSubtask={onAddSubtask}
+            onToggleSubtask={onToggleSubtask}
+            onUpdateSubtask={onUpdateSubtask}
+            onDeleteSubtask={onDeleteSubtask}
           />
         ))}
       </div>

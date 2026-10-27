@@ -80,7 +80,10 @@ export function loadUserTasksFromStorage(): StorageLoadResult<UserTask[]> {
 
     for (const item of parsed) {
       if (isValidUserTask(item)) {
-        validTasks.push(item);
+        validTasks.push({
+          ...item,
+          subtasks: Array.isArray(item.subtasks) ? item.subtasks : [],
+        });
       } else {
         corruptedCount++;
       }

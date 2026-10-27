@@ -33,7 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   return (
     <aside
-      className="hidden md:flex flex-col w-[82px] h-full bg-black text-white rounded-[32px] p-3 py-6 items-center shrink-0 shadow-xl border border-white/10 z-20"
+      className="hidden md:flex flex-col w-[86px] h-full bg-black text-white rounded-[32px] p-3 py-6 items-center shrink-0 shadow-xl border border-white/10 z-20"
       aria-label="Application Navigation Rail"
     >
       {/* Region 1: Branding or Application Logo at the top */}
@@ -48,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Region 2: Primary Navigation in the middle */}
       <nav
-        className="mt-6 flex flex-col items-center space-y-3.5 flex-1 min-h-0 overflow-y-auto no-scrollbar py-1 px-1"
+        className="mt-6 flex flex-col items-center space-y-3.5 flex-1 min-h-0 overflow-y-auto overflow-x-visible no-scrollbar py-2 px-2"
         aria-label="Main Navigation"
       >
         {/* 1. Dashboard / My Tasks */}
@@ -67,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <LayoutDashboard className="w-5 h-5" aria-hidden="true" />
             {userTasksCount > 0 && (
               <span
-                className="absolute -top-1.5 -right-1.5 min-w-[19px] h-[19px] px-1 text-[10px] font-bold rounded-full bg-brand-500 text-white flex items-center justify-center border-2 border-black shadow-sm"
+                className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 text-[10px] font-bold rounded-full bg-brand-500 text-white flex items-center justify-center border-2 border-black shadow-sm pointer-events-none z-10"
                 aria-hidden="true"
               >
                 {userTasksCount > 99 ? '99+' : userTasksCount}

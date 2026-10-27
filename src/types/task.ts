@@ -2,6 +2,14 @@ export type TaskStatus = 'Pending' | 'In Progress' | 'Completed';
 export type TaskPriority = 'High' | 'Medium' | 'Low';
 export type TaskCategory = 'GDG' | 'Academics' | 'Personal';
 
+export interface Subtask {
+  id: string;
+  title: string;
+  completed: boolean;
+  createdAt: string; // ISO 8601 string
+  updatedAt: string; // ISO 8601 string
+}
+
 export interface UserTask {
   id: string;
   title: string;
@@ -11,6 +19,7 @@ export interface UserTask {
   status: TaskStatus;
   createdAt: string; // ISO 8601 string
   updatedAt: string; // ISO 8601 string
+  subtasks?: Subtask[]; // optional checklist items, defaults to []
 }
 
 export type SortOption =

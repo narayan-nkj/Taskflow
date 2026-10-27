@@ -40,7 +40,10 @@ export function exportTasksAsJson(tasks: readonly UserTask[]): boolean {
       schemaVersion: 1,
       exportedAt: new Date().toISOString(),
       appName: 'TaskFlow',
-      tasks: tasks.map((t) => ({ ...t })),
+      tasks: tasks.map((t) => ({
+        ...t,
+        subtasks: Array.isArray(t.subtasks) ? t.subtasks.map((s) => ({ ...s })) : [],
+      })),
     };
 
     const jsonString = JSON.stringify(payload, null, 2);
@@ -141,9 +144,25 @@ export async function importTasksFromJsonFile(
       }
     }
     allocatedIds.add(finalId);
+
+    // Ensure subtask IDs within this parent task are unique
+    const allocatedSubtaskIds = new Set<string>();
+    const preparedSubtasks = (task.subtasks || []).map((sub) => {
+      let subId = sub.id;
+      if (allocatedSubtaskIds.has(subId)) {
+        subId = `sub-import-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      }
+      allocatedSubtaskIds.add(subId);
+      return {
+        ...sub,
+        id: subId,
+      };
+    });
+
     preparedImportedTasks.push({
       ...task,
       id: finalId,
+      subtasks: preparedSubtasks,
     });
   }
 

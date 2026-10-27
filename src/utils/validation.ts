@@ -1,5 +1,6 @@
 import {
   UserTask,
+  Subtask,
   TaskStatus,
   TaskPriority,
   TaskCategory,
@@ -22,6 +23,24 @@ export function isValidPriority(val: unknown): val is TaskPriority {
 
 export function isValidCategory(val: unknown): val is TaskCategory {
   return typeof val === 'string' && VALID_CATEGORIES.includes(val as TaskCategory);
+}
+
+/**
+ * Defensively validates an individual Subtask item.
+ */
+export function isValidSubtask(obj: unknown): obj is Subtask {
+  if (!obj || typeof obj !== 'object') return false;
+  const candidate = obj as Record<string, unknown>;
+
+  if (typeof candidate.id !== 'string' || candidate.id.trim() === '') return false;
+  if (typeof candidate.title !== 'string') return false;
+  const trimmedTitle = candidate.title.trim();
+  if (trimmedTitle.length === 0 || trimmedTitle.length > MAX_TITLE_LENGTH) return false;
+  if (typeof candidate.completed !== 'boolean') return false;
+  if (typeof candidate.createdAt !== 'string' || isNaN(Date.parse(candidate.createdAt))) return false;
+  if (typeof candidate.updatedAt !== 'string' || isNaN(Date.parse(candidate.updatedAt))) return false;
+
+  return true;
 }
 
 export interface TaskFormErrors {
@@ -76,6 +95,7 @@ export function validateTaskInput(input: {
 /**
  * Validates a loaded or parsed UserTask object strictly.
  * Applies the exact same title length and non-empty rules as form submissions.
+ * Accepts legacy records without subtasks, defaulting them to valid.
  */
 export function isValidUserTask(obj: unknown): obj is UserTask {
   if (!obj || typeof obj !== 'object') return false;
@@ -94,6 +114,17 @@ export function isValidUserTask(obj: unknown): obj is UserTask {
   if (!isValidStatus(candidate.status)) return false;
   if (typeof candidate.createdAt !== 'string' || isNaN(Date.parse(candidate.createdAt))) return false;
   if (typeof candidate.updatedAt !== 'string' || isNaN(Date.parse(candidate.updatedAt))) return false;
+
+  // Defensive validation of subtasks array if present
+  if (candidate.subtasks !== undefined) {
+    if (!Array.isArray(candidate.subtasks)) return false;
+    const subtaskIds = new Set<string>();
+    for (const sub of candidate.subtasks) {
+      if (!isValidSubtask(sub)) return false;
+      if (subtaskIds.has(sub.id)) return false; // Enforce unique subtask ID per parent
+      subtaskIds.add(sub.id);
+    }
+  }
 
   return true;
 }
@@ -179,7 +210,10 @@ export function validateImportJson(rawContent: string): ImportValidationResult {
         errorMessage: `Task record at index ${i} is invalid or has malformed fields. Import stopped to prevent corrupting data.`,
       };
     }
-    validTasks.push(item);
+    validTasks.push({
+      ...item,
+      subtasks: Array.isArray(item.subtasks) ? item.subtasks : [],
+    });
   }
 
   return {

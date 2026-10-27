@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { UserTask, TaskPriority, TaskCategory, TaskStatus } from '../types/task';
+import { UserTask, Subtask, TaskPriority, TaskCategory, TaskStatus } from '../types/task';
 import {
   loadUserTasksFromStorage,
   saveUserTasksToStorage,
 } from '../utils/storage';
+import { validateSubtaskTitle, generateSubtaskId } from '../utils/subtasks';
 
 export function useTasks() {
   const [tasks, setTasks] = useState<UserTask[]>(() => {
@@ -45,6 +46,7 @@ export function useTasks() {
         status: input.status || 'Pending',
         createdAt: nowIso,
         updatedAt: nowIso,
+        subtasks: [],
       };
 
       setTasks((prev) => [newTask, ...prev]);
@@ -157,6 +159,153 @@ export function useTasks() {
     setTasks(newTasks);
   }, []);
 
+  const addSubtask = useCallback(
+    (taskId: string, title: string): Subtask | null => {
+      const validation = validateSubtaskTitle(title);
+      if (!validation.isValid) {
+        return null;
+      }
+
+      const nowIso = new Date().toISOString();
+      const newSubtask: Subtask = {
+        id: generateSubtaskId(),
+        title: validation.trimmed,
+        completed: false,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
+
+      setTasks((prev) =>
+        prev.map((task) => {
+          if (task.id === taskId) {
+            const existingSubtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+            return {
+              ...task,
+              subtasks: [...existingSubtasks, newSubtask],
+              updatedAt: nowIso,
+            };
+          }
+          return task;
+        })
+      );
+
+      return newSubtask;
+    },
+    []
+  );
+
+  const toggleSubtask = useCallback(
+    (taskId: string, subtaskId: string): boolean => {
+      const nowIso = new Date().toISOString();
+      let didToggle = false;
+
+      setTasks((prev) =>
+        prev.map((task) => {
+          if (task.id === taskId && Array.isArray(task.subtasks)) {
+            const updated = task.subtasks.map((sub) => {
+              if (sub.id === subtaskId) {
+                didToggle = true;
+                return {
+                  ...sub,
+                  completed: !sub.completed,
+                  updatedAt: nowIso,
+                };
+              }
+              return sub;
+            });
+
+            if (didToggle) {
+              return {
+                ...task,
+                subtasks: updated,
+                updatedAt: nowIso,
+              };
+            }
+          }
+          return task;
+        })
+      );
+
+      return didToggle;
+    },
+    []
+  );
+
+  const updateSubtask = useCallback(
+    (taskId: string, subtaskId: string, title: string): boolean => {
+      const validation = validateSubtaskTitle(title);
+      if (!validation.isValid) {
+        return false;
+      }
+
+      const nowIso = new Date().toISOString();
+      let didUpdate = false;
+
+      setTasks((prev) =>
+        prev.map((task) => {
+          if (task.id === taskId && Array.isArray(task.subtasks)) {
+            const updated = task.subtasks.map((sub) => {
+              if (sub.id === subtaskId) {
+                didUpdate = true;
+                return {
+                  ...sub,
+                  title: validation.trimmed,
+                  updatedAt: nowIso,
+                };
+              }
+              return sub;
+            });
+
+            if (didUpdate) {
+              return {
+                ...task,
+                subtasks: updated,
+                updatedAt: nowIso,
+              };
+            }
+          }
+          return task;
+        })
+      );
+
+      return didUpdate;
+    },
+    []
+  );
+
+  const deleteSubtask = useCallback(
+    (taskId: string, subtaskId: string): boolean => {
+      const nowIso = new Date().toISOString();
+      let didDelete = false;
+
+      setTasks((prev) =>
+        prev.map((task) => {
+          if (task.id === taskId && Array.isArray(task.subtasks)) {
+            const filtered = task.subtasks.filter((sub) => {
+              if (sub.id === subtaskId) {
+                didDelete = true;
+                return false;
+              }
+              return true;
+            });
+
+            if (didDelete) {
+              return {
+                ...task,
+                subtasks: filtered,
+                updatedAt: nowIso,
+              };
+            }
+          }
+          return task;
+        })
+      );
+
+      return didDelete;
+    },
+    []
+  );
+
   const dismissStorageNotice = useCallback(() => {
     setStorageNotice(null);
   }, []);
@@ -173,5 +322,9 @@ export function useTasks() {
     setTaskStatus,
     clearCompletedTasks,
     setAllTasks,
+    addSubtask,
+    toggleSubtask,
+    updateSubtask,
+    deleteSubtask,
   };
 }

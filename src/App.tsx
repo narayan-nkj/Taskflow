@@ -42,6 +42,10 @@ export function App() {
     setTaskStatus,
     clearCompletedTasks,
     setAllTasks,
+    addSubtask,
+    toggleSubtask,
+    updateSubtask,
+    deleteSubtask,
   } = useTasks();
 
   const { advice, isLoading: isAdviceLoading, error: adviceError, refresh: refreshAdvice } = useAdvice();
@@ -451,6 +455,10 @@ export function App() {
                       onDelete={handlePromptDelete}
                       onClearCompletedClick={() => setIsClearCompletedOpen(true)}
                       onToggleFiltersToolbar={() => setShowFilterToolbar((prev) => !prev)}
+                      onAddSubtask={addSubtask}
+                      onToggleSubtask={toggleSubtask}
+                      onUpdateSubtask={updateSubtask}
+                      onDeleteSubtask={deleteSubtask}
                     />
                   </div>
                 </div>
@@ -463,6 +471,10 @@ export function App() {
                     onDelete={handlePromptDelete}
                     onToggleStatus={toggleTaskStatus}
                     onAddNewTask={() => handleOpenCreateModal(selectedDate)}
+                    onAddSubtask={addSubtask}
+                    onToggleSubtask={toggleSubtask}
+                    onUpdateSubtask={updateSubtask}
+                    onDeleteSubtask={deleteSubtask}
                     advice={advice}
                     isAdviceLoading={isAdviceLoading}
                     adviceError={adviceError}

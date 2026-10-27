@@ -21,6 +21,7 @@ The interface prioritizes clarity and speed:
 | Requirement Area | Implemented Features & Behaviors |
 | :--- | :--- |
 | **Core Task Flow (CRUD)** | • **Create:** Add tasks with Title, Category (`GDG`, `Academics`, `Personal`), Priority (`High`, `Medium`, `Low`), optional Due Date (`YYYY-MM-DD`), and Status (`Pending` default).<br>• **Custom DatePicker Popover:** Accessible inline calendar popover with month/year navigation across years, Monday-start 7-column grid, Today/Tomorrow presets, clear date action, and Escape/click-outside dismissal.<br>• **Validation:** Trims title, rejects blank/whitespace-only input, displays inline error messages.<br>• **Read:** Displays title, category, priority, localized deadline status badge, and status control on every item.<br>• **Update:** Prefilled modal editor to modify all task attributes with instant refresh across views.<br>• **Quick Status Toggle:** One-click checkbox control to toggle between `Completed` and `Pending` with visual strikethrough.<br>• **Delete:** Confirmation modal stating task title, paired with an immediate "Undo" toast.<br>• **Clear Completed:** Batch removes completed user tasks after confirmation, leaving pending tasks and API samples untouched. |
+| **Checklists & Subtasks (Optional Assignment Feature)** | • **Nested Checklists:** Users can add multiple checklist subtasks beneath any user-owned parent task.<br>• **Subtask Capabilities:** Add with trimmed title validation (1-120 chars), toggle completion checkbox, inline title editing, and deletion.<br>• **Visual Progress & Collapsible List:** Task cards with subtasks feature an accessible expand/collapse toggle, clear counts (e.g. "2 of 4 complete"), and a subtle progress bar. Tasks without subtasks remain uncluttered.<br>• **Parent-Status Independence:** Completing all subtasks does not auto-complete the parent task; completing or reopening a parent task never alters or discards subtask states.<br>• **Zero Metric Leakage:** Subtasks do not inflate top-level task counts, dashboard statistics, global search, due-date alerts, or API sample counts.<br>• **Detail Panel Checklist:** Interactive checklist management is also seamlessly accessible directly inside the slide-over Task Detail Panel. |
 | **Search, Filters & Sorting** | • **Global Search Bar:** Prominently defined input with high-contrast surfaces (`bg-white` in light mode, `#151515` in dark mode), visible borders, brand orange icon, keyboard shortcuts (`/`), and quick clear control.<br>• **Category Filter:** `All`, `GDG`, `Academics`, `Personal`.<br>• **Priority Filter:** `All`, `High`, `Medium`, `Low`.<br>• **Status Filter:** `All`, `Pending`, `In Progress`, `Completed`.<br>• **Deterministic Sorting:** Due date ascending/descending (null dates grouped at end), Priority (High to Low / Low to High), Creation date (Newest / Oldest), Title (A to Z).<br>• **Filter Indicators & Reset:** Active filter chip count and a one-click `Clear filters` button. |
 | **Dashboard Statistics & Micro-Charts** | • **Data-Driven Visualizations (No decorative lines):**<br>&nbsp;&nbsp;1. **Total Tasks:** Real 7-day cumulative task creation volume trend sparkline with gradient fill.<br>&nbsp;&nbsp;2. **Completed:** Circular SVG progress gauge communicating exact completion rate `(completed / total) * 100` (safe at 0).<br>&nbsp;&nbsp;3. **Pending:** Segmented priority workload breakdown bars (High in Rose, Medium in Amber, Low in Slate) with interactive count tooltips.<br>&nbsp;&nbsp;4. **Mathematical Consistency:** Guarantees `Completed + Pending = Total Tasks` at all times. |
 | **Deadline Intelligence & Notifications** | • **Local Calendar Dates:** Avoids UTC timezone day-shifts using local year-month-day components.<br>• **Semantic Badges:** `Overdue` (past due date & not completed), `Due today` (today's date & not completed), `Upcoming` (within 3 days), and `Completed` (completed tasks are never marked overdue).<br>• **Approaching Deadline Alerts:** Real-time toast alerts, interactive top-bar `NotificationCenter` dropdown with badge count, and optional Web Notifications API browser integration. |
@@ -69,7 +70,7 @@ Open `http://localhost:5173/` in your browser.
 | Command | Description |
 | :--- | :--- |
 | `npm run dev` | Starts the Vite development server with Hot Module Replacement (HMR). |
-| `npm run test` | Runs the full Vitest suite (123 unit and component tests across 23 test files covering CRUD, hooks, API resilience, storage corruption recovery, sorting, filtering, dialog focus traps, custom calendar date pickers, statistics micro-visualizations, deadline notifications, cinematic typographic loading screen, and weather services). |
+| `npm run test` | Runs the full Vitest suite (154 unit and component tests across 26 test files covering CRUD, subtasks & checklists, sidebar navigation and clipping prevention, weather services & manual city search, hooks, API resilience, storage corruption recovery, sorting, filtering, dialog focus traps, custom calendar date pickers, statistics micro-visualizations, deadline notifications, and cinematic typographic loading screen). |
 | `npm run type-check` | Runs the TypeScript compiler (`tsc --noEmit`) to verify strict type safety. |
 | `npm run lint` | Runs ESLint across all source and test files. |
 | `npm run build` | Compiles TypeScript and creates an optimized production bundle in `dist/`. |
@@ -86,7 +87,7 @@ taskflow/
 │   └── taskflow.svg                       # Brand favicon vector asset
 ├── src/
 │   ├── types/
-│   │   ├── task.ts                        # UserTask, TaskPriority, TaskCategory, TaskStatus, TaskExportPayload
+│   │   ├── task.ts                        # UserTask, Subtask, TaskPriority, TaskCategory, TaskStatus, TaskExportPayload
 │   │   ├── api.ts                         # SampleTodo, DummyJsonResponse, AdviceSlipResponse
 │   │   └── notification.ts                # DeadlineNotification, AlertSeverity model definitions
 │   ├── config/
@@ -99,7 +100,8 @@ taskflow/
 │   │   ├── sorting.ts                     # Deterministic multi-tier sorting & tie-breakers
 │   │   ├── statistics.ts                  # Pure calculation of Total, Completed, Pending, Completion Rate
 │   │   ├── storage.ts                     # Namespaced localStorage operations & recovery
-│   │   └── validation.ts                  # Input validation, strict UserTask schema check, import validation
+│   │   ├── subtasks.ts                    # Subtask progress calculations, validation, and ID generation
+│   │   └── validation.ts                  # Input validation, strict UserTask & Subtask schema check, import validation
 │   ├── services/
 │   │   ├── advice.ts                      # Advice Slip API client with cache-busting refresh
 │   │   ├── dummyjson.ts                   # DummyJSON todos API client with AbortController
@@ -109,7 +111,7 @@ taskflow/
 │   │   ├── useAdvice.ts                   # Async hook for Daily Advice Slip
 │   │   ├── useDeadlineAlerts.ts           # Real-time approaching deadline detection and browser alert sync
 │   │   ├── useSampleTodos.ts              # Async hook for DummyJSON sample todos
-│   │   ├── useTasks.ts                    # User task CRUD, status toggling, and storage persistence
+│   │   ├── useTasks.ts                    # User task CRUD, subtask management, and storage persistence
 │   │   ├── useTheme.ts                    # Theme preference management (light/dark/system) & FOUC prevention
 │   │   └── useWeather.ts                  # Geolocation & weather data fetch hook with search fallback
 │   ├── components/
@@ -133,10 +135,11 @@ taskflow/
 │   │   │   ├── AdviceCard.tsx             # Daily advice card with refresh and error states
 │   │   │   ├── DateStrip.tsx              # Interactive 7-day calendar strip with task counts
 │   │   │   ├── StatCards.tsx              # Data-driven overview cards with sparklines & micro-gauges
-│   │   │   ├── TaskDetailPanel.tsx        # Slide-over detail inspection and quick actions
+│   │   │   ├── TaskChecklist.tsx          # Interactive subtasks checklist with progress bar and inline editor
+│   │   │   ├── TaskDetailPanel.tsx        # Slide-over detail inspection, subtasks, and quick actions
 │   │   │   ├── TaskFilters.tsx            # Search, filter dropdowns, sort options, and reset
 │   │   │   ├── TaskFormModal.tsx          # Task editor modal with custom date picker & validation
-│   │   │   ├── TaskItem.tsx               # Individual task card with status toggle, badges, edit/delete
+│   │   │   ├── TaskItem.tsx               # Individual task card with collapsible subtasks, badges, actions
 │   │   │   ├── TaskList.tsx               # Task list view (empty state, filtered empty, list)
 │   │   │   └── WeatherCard.tsx            # Contextual weather forecast card with city search
 │   │   ├── samples/
@@ -160,16 +163,19 @@ taskflow/
 │   ├── metricHistory.test.ts              # Unit tests for 7-day metric tracking and history formatting
 │   ├── mobileHeader.test.tsx              # Tests for mobile drawer expansion and aria-current tab navigation
 │   ├── modal.test.tsx                     # Tests for dialog focus management, disabled skip, and focus trap
+│   ├── sidebar.test.tsx                   # Tests for sidebar rail navigation, zero/1/99+ badges, and clipping prevention
 │   ├── sorting.test.ts                    # Unit tests for deterministic sorting and tie-breakers
 │   ├── sparkline.test.tsx                 # Tests for SVG sparkline stroke, fill, and area path rendering
 │   ├── statistics.test.ts                 # Unit tests for stats and zero-task edge cases
 │   ├── storage.test.ts                    # Unit tests for guarded localStorage property access & quota handling
+│   ├── subtasks.test.tsx                  # Tests for subtasks CRUD, progress, parent independence, legacy migration, collision handling, and accessibility
 │   ├── topBarAndNotifications.test.tsx    # Tests for TopBar search input and NotificationCenter popover
 │   ├── useAdvice.test.tsx                 # Tests for advice loading, error retry, unmount abort, and stale guards
 │   ├── useSampleTodos.test.tsx            # Tests for DummyJSON loading, retry, unmount abort, and stale guards
 │   ├── useTasks.test.tsx                  # Tests for pure task state updaters, delete/undo, and StrictMode purity
 │   ├── validation.test.ts                 # Unit tests for input boundary (120/121 chars) and import schemas
 │   ├── visualizations.test.tsx            # Tests for CircularProgress ratio and PriorityDistributionBar counts
+│   ├── weatherCard.test.tsx               # Tests for weather card presentation, city lookup, and non-blocking failure states
 │   └── weatherService.test.ts             # Tests for weather API data mapping, code translation, and caching
 ├── index.html                             # HTML root with meta tags, Inter font, and FOUC prevention
 ├── package.json                           # Scripts, dependencies, and configuration
@@ -188,6 +194,14 @@ type TaskStatus = 'Pending' | 'In Progress' | 'Completed';
 type TaskPriority = 'High' | 'Medium' | 'Low';
 type TaskCategory = 'GDG' | 'Academics' | 'Personal';
 
+interface Subtask {
+  id: string;            // Unique ID per parent task: crypto.randomUUID() or timestamp fallback
+  title: string;         // Trimmed, non-empty, 1-120 characters
+  completed: boolean;    // Independent completion state
+  createdAt: string;     // ISO 8601 string
+  updatedAt: string;     // ISO 8601 string
+}
+
 interface UserTask {
   id: string;            // Unique ID: crypto.randomUUID() when available, with collision-resistant timestamp/counter fallback
   title: string;         // Trimmed, non-empty, 1-120 characters
@@ -195,10 +209,18 @@ interface UserTask {
   category: TaskCategory;
   dueDate: string | null;// Calendar date in YYYY-MM-DD or null if absent
   status: TaskStatus;    // Defaults to 'Pending' for new tasks
+  subtasks?: Subtask[];  // Checklist items beneath parent task; defaults to [] for legacy records
   createdAt: string;     // ISO 8601 string
   updatedAt: string;     // ISO 8601 string
 }
 ```
+
+### Subtasks & Checklists Design Principles
+1. **Parent-Status Independence:** Completing all subtasks does not auto-complete the parent task. Reopening or completing a parent task does not discard, reset, or alter subtask completion states.
+2. **Metric & Search Isolation:** Subtasks do not inflate top-level task counts, dashboard statistics, global search, due-date alerts, or API sample counts.
+3. **Legacy Data Compatibility:** Stored tasks or imported files lacking the `subtasks` field seamlessly default to `subtasks: []` upon load and import, without requiring migration flags or user action.
+4. **Cascade Deletion & Undo Preservation:** Deleting a parent task removes its checklist as an atomic operation; clicking "Undo" restores the parent task with its complete checklist intact.
+5. **ID Deduplication:** During file import/merge, if any subtask ID collides within the parent, fresh collision-resistant IDs are allocated safely.
 
 ### Storage Keys & Versioning
 
@@ -283,6 +305,22 @@ Exports a downloadable file named `taskflow-tasks-YYYY-MM-DD.json`:
       "category": "GDG",
       "dueDate": "2026-10-28",
       "status": "Pending",
+      "subtasks": [
+        {
+          "id": "c8a1e2f3-0001-4444-8888-0123456789ab",
+          "title": "Draft code examples for Jetpack Compose",
+          "completed": true,
+          "createdAt": "2026-10-27T10:15:00.000Z",
+          "updatedAt": "2026-10-27T10:30:00.000Z"
+        },
+        {
+          "id": "c8a1e2f3-0002-4444-8888-0123456789ab",
+          "title": "Review Q&A handout notes",
+          "completed": false,
+          "createdAt": "2026-10-27T10:20:00.000Z",
+          "updatedAt": "2026-10-27T10:20:00.000Z"
+        }
+      ],
       "createdAt": "2026-10-27T10:00:00.000Z",
       "updatedAt": "2026-10-27T10:00:00.000Z"
     }
@@ -293,8 +331,9 @@ Exports a downloadable file named `taskflow-tasks-YYYY-MM-DD.json`:
 ### Import Validation & Merge Policy
 
 1. **Formats Supported:** Accepts either the standard TaskFlow export object with `schemaVersion: 1` (`{ schemaVersion: 1, exportedAt, appName, tasks: [...] }`) or a raw JSON array of valid `UserTask` objects. Object payloads with a missing `schemaVersion` or unsupported version numbers are explicitly rejected with an informative error message.
-2. **All-or-Nothing Validation:** If the file contains unparseable JSON, an unsupported or missing schema version, or any invalid task record (e.g., empty or whitespace-only title, title exceeding 120 characters, invalid priority/category/status enum, malformed date), the entire import is rejected with a specific error message. **Existing tasks remain completely untouched.**
-3. **Collision Resolution:** When an imported task shares an ID with an existing task or with another task inside the same imported file, TaskFlow generates a replacement unique ID using bounded retries and deterministic fallbacks. Both existing tasks and all valid imported tasks are preserved as distinct records without data loss.
+2. **Backward-Compatible Migration:** Legacy exports and task arrays without a `subtasks` field are automatically normalized on import to `subtasks: []`.
+3. **All-or-Nothing Validation:** If the file contains unparseable JSON, an unsupported or missing schema version, or any invalid task or subtask record (e.g., empty or whitespace-only title, title exceeding 120 characters, invalid priority/category/status enum, malformed date, invalid subtask timestamps), the entire import is rejected with a specific error message. **Existing tasks remain completely untouched.**
+4. **Collision Resolution:** When an imported task shares an ID with an existing task or with another task inside the same imported file, TaskFlow generates a replacement unique ID using bounded retries and deterministic fallbacks. Similarly, duplicate subtask IDs within the same parent are deduplicated with fresh unique IDs so that both existing tasks and all valid imported tasks are preserved as distinct records without data loss.
 
 ---
 
@@ -342,17 +381,28 @@ Exports a downloadable file named `taskflow-tasks-YYYY-MM-DD.json`:
 
 ---
 
-## 📸 Screenshots
+## 📸 Application Screenshots
 
-> **Note:** Screenshots still need to be captured from your local run. Start the development server using `npm run dev` and navigate to `http://localhost:5173/` to view and capture these states:
+The repository preserves high-resolution visual captures in the [`SCREENSHOTS/`](SCREENSHOTS/) directory illustrating TaskFlow in live operation across core modes and themes:
 
-| Screen | Description |
-| :--- | :--- |
-| **Main Dashboard (Desktop)** | Overview of statistic cards, daily advice slip, search filters, and active task cards with priority badges. |
-| **Dark Theme** | Sleek, eye-friendly dark mode with contrast-compliant surfaces and subtle semantic accents. |
-| **Task Creation Modal** | Accessible modal dialog with inline validation and priority/category selection. |
-| **Sample Tasks (DummyJSON)** | Dedicated API view showing reference sample todos and the "Add copy to My Tasks" action. |
-| **Mobile Viewport** | Responsive mobile layout with header actions and touch-friendly controls. |
+### 1. Main Dashboard — Desktop (Light Theme)
+![TaskFlow Main Dashboard — Light Theme](SCREENSHOTS/Screenshot%202026-10-27%20at%206.25.16%E2%80%AFPM.png)
+
+*Caption: **TaskFlow Main Dashboard (Light Theme)** — Comprehensive overview featuring the black navigation capsule rail with active task counts, live statistics cards (Total Tasks volume trend sparkline, Completed circular gauge, and Pending priority workload distribution), horizontal 7-day DateStrip with date filtering, user-owned task cards with category & deadline urgency badges, slide-over Task Workspace detail inspection, real-time Open-Meteo weather context, and daily motivation inspiration from the Advice Slip API.*
+
+---
+
+### 2. External API Integration — DummyJSON Sample Todos View
+![TaskFlow DummyJSON Sample Todos Integration](SCREENSHOTS/Screenshot%202026-10-27%20at%206.25.29%E2%80%AFPM.png)
+
+*Caption: **DummyJSON Sample Todos API View** — Demonstrates strict architectural data isolation between remote reference todos fetched live from `https://dummyjson.com/todos` and local user tasks. Provides single-click **"Add copy to My Tasks"** action to safely duplicate sample todos into independent, user-owned personal tasks with fresh UUIDs.*
+
+---
+
+### 3. Main Dashboard — Desktop (Dark Theme)
+![TaskFlow Main Dashboard — Dark Theme](SCREENSHOTS/Screenshot%202026-10-27%20at%206.25.45%E2%80%AFPM.png)
+
+*Caption: **TaskFlow Main Dashboard (Dark Theme)** — Contrast-compliant dark mode utilizing `#050505` and `#111111` surfaces, vibrant brand orange highlights, WCAG-tested typography, and full feature parity across task cards, detail inspection, live weather conditions, and micro-visualizations.*
 
 ---
 
