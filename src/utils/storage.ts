@@ -11,15 +11,46 @@ export interface StorageLoadResult<T> {
 }
 
 /**
+ * Safely accesses window.localStorage without throwing in restricted browser contexts.
+ */
+export function getSafeLocalStorage(): Storage | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Safely reads from localStorage with defensive JSON parsing and validation.
  */
 export function loadUserTasksFromStorage(): StorageLoadResult<UserTask[]> {
-  if (typeof window === 'undefined' || !window.localStorage) {
+  if (typeof window === 'undefined') {
     return { data: [], hadCorruption: false };
   }
 
+  let storage: Storage | null = null;
   try {
-    const raw = window.localStorage.getItem(USER_TASKS_STORAGE_KEY);
+    storage = window.localStorage;
+  } catch {
+    return {
+      data: [],
+      hadCorruption: false,
+      errorMessage: 'Local storage is unavailable or access was denied (e.g. strict private browsing).',
+    };
+  }
+
+  if (!storage) {
+    return {
+      data: [],
+      hadCorruption: false,
+      errorMessage: 'Local storage is not available in this environment.',
+    };
+  }
+
+  try {
+    const raw = storage.getItem(USER_TASKS_STORAGE_KEY);
     if (!raw) {
       return { data: [], hadCorruption: false };
     }
@@ -83,13 +114,27 @@ export function saveUserTasksToStorage(tasks: readonly UserTask[]): {
   success: boolean;
   error?: string;
 } {
-  if (typeof window === 'undefined' || !window.localStorage) {
+  if (typeof window === 'undefined') {
+    return { success: false, error: 'Local storage is not available in non-browser environments.' };
+  }
+
+  let storage: Storage | null = null;
+  try {
+    storage = window.localStorage;
+  } catch {
+    return {
+      success: false,
+      error: 'Local storage is unavailable or access was denied (e.g. strict private browsing).',
+    };
+  }
+
+  if (!storage) {
     return { success: false, error: 'Local storage is not available in this environment.' };
   }
 
   try {
     const serialized = JSON.stringify(tasks);
-    window.localStorage.setItem(USER_TASKS_STORAGE_KEY, serialized);
+    storage.setItem(USER_TASKS_STORAGE_KEY, serialized);
     return { success: true };
   } catch (err: unknown) {
     const isQuotaError =
@@ -110,11 +155,13 @@ export function saveUserTasksToStorage(tasks: readonly UserTask[]): {
 export type ThemePreference = 'light' | 'dark' | 'system';
 
 export function loadThemeFromStorage(): ThemePreference {
-  if (typeof window === 'undefined' || !window.localStorage) {
+  if (typeof window === 'undefined') {
     return 'system';
   }
   try {
-    const val = window.localStorage.getItem(THEME_STORAGE_KEY);
+    const storage = window.localStorage;
+    if (!storage) return 'system';
+    const val = storage.getItem(THEME_STORAGE_KEY);
     if (val === 'light' || val === 'dark') {
       return val;
     }
@@ -125,14 +172,16 @@ export function loadThemeFromStorage(): ThemePreference {
 }
 
 export function saveThemeToStorage(theme: ThemePreference): boolean {
-  if (typeof window === 'undefined' || !window.localStorage) {
+  if (typeof window === 'undefined') {
     return false;
   }
   try {
+    const storage = window.localStorage;
+    if (!storage) return false;
     if (theme === 'system') {
-      window.localStorage.removeItem(THEME_STORAGE_KEY);
+      storage.removeItem(THEME_STORAGE_KEY);
     } else {
-      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+      storage.setItem(THEME_STORAGE_KEY, theme);
     }
     return true;
   } catch {
