@@ -33,13 +33,13 @@ export const TaskItem: React.FC<TaskItemProps> = ({
     >
       {/* Left side: checkbox + title + badges */}
       <div className="flex items-start space-x-3.5 min-w-0 flex-1">
-        {/* Quick toggle checkbox */}
+        {/* Quick toggle checkbox with touch-friendly target */}
         <button
           type="button"
           onClick={() => onToggleStatus(task.id)}
-          className={`mt-0.5 w-6 h-6 rounded-lg border flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-brand-500 shrink-0 ${
+          className={`mt-0.5 w-7 h-7 rounded-xl border flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-brand-500 shrink-0 min-w-[28px] min-h-[28px] ${
             isCompleted
-              ? 'bg-emerald-500 border-emerald-500 text-white'
+              ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
               : 'border-slate-300 dark:border-slate-600 hover:border-brand-500 bg-slate-50 dark:bg-slate-800'
           }`}
           aria-label={isCompleted ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as completed`}
@@ -79,7 +79,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               id={`status-select-${task.id}`}
               value={task.status}
               onChange={(e) => onStatusChange(task.id, e.target.value as TaskStatus)}
-              className="text-[11px] font-medium py-0.5 px-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer"
+              className="text-xs font-medium py-1 px-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer min-h-[36px]"
             >
               <option value="Pending">Pending</option>
               <option value="In Progress">In Progress</option>
@@ -90,11 +90,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       </div>
 
       {/* Right side: Action buttons (Edit & Delete) */}
-      <div className="flex items-center space-x-1 sm:self-center self-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 shrink-0">
+      <div className="flex items-center space-x-1.5 sm:self-center self-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 shrink-0">
         <button
           type="button"
           onClick={() => onEdit(task)}
-          className="p-2 text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
           aria-label={`Edit task: ${task.title}`}
           title="Edit task"
         >
@@ -104,7 +104,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         <button
           type="button"
           onClick={() => onDelete(task)}
-          className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-rose-500"
+          className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-rose-500"
           aria-label={`Delete task: ${task.title}`}
           title="Delete task"
         >
