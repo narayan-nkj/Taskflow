@@ -56,12 +56,12 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
   };
 
   return (
-    <div className="space-y-3 p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+    <div className="space-y-3 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#111111] border border-slate-200/80 dark:border-[#292929] shadow-sm">
       {/* Top row: Search input & Clear/Reset button */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         {/* Search bar */}
         <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-[#808080]">
             <Search className="w-4 h-4" aria-hidden="true" />
           </div>
           <input
@@ -69,14 +69,14 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             value={filters.search}
             onChange={handleSearchChange}
             placeholder="Search tasks by title..."
-            className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all min-h-[42px]"
+            className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-[#181818] border border-slate-200 dark:border-[#292929] rounded-xl text-sm text-charcoal-900 dark:text-[#F5F5F5] placeholder-slate-400 dark:placeholder:text-[#808080] focus:bg-white dark:focus:bg-[#181818] focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all min-h-[42px]"
             aria-label="Search tasks"
           />
           {filters.search && (
             <button
               type="button"
               onClick={handleClearSearch}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 min-w-[40px] min-h-[40px]"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-[#F5F5F5] min-w-[40px] min-h-[40px]"
               aria-label="Clear search query"
             >
               <X className="w-4 h-4" aria-hidden="true" />
@@ -109,7 +109,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             id="filter-category"
             value={filters.category}
             onChange={handleCategoryChange}
-            className="w-full px-3 py-2 text-xs font-medium bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer min-h-[38px]"
+            className="w-full px-3 py-2 text-xs font-medium bg-slate-50 dark:bg-[#181818] border border-slate-200 dark:border-[#292929] rounded-lg text-charcoal-900 dark:text-[#F5F5F5] focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer min-h-[38px]"
           >
             <option value="All">All Categories</option>
             <option value="GDG">GDG</option>
@@ -127,7 +127,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             id="filter-priority"
             value={filters.priority}
             onChange={handlePriorityChange}
-            className="w-full px-3 py-2 text-xs font-medium bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer min-h-[38px]"
+            className="w-full px-3 py-2 text-xs font-medium bg-slate-50 dark:bg-[#181818] border border-slate-200 dark:border-[#292929] rounded-lg text-charcoal-900 dark:text-[#F5F5F5] focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer min-h-[38px]"
           >
             <option value="All">All Priorities</option>
             <option value="High">High Priority</option>
@@ -145,7 +145,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             id="filter-status"
             value={filters.status}
             onChange={handleStatusChange}
-            className="w-full px-3 py-2 text-xs font-medium bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer min-h-[38px]"
+            className="w-full px-3 py-2 text-xs font-medium bg-slate-50 dark:bg-[#181818] border border-slate-200 dark:border-[#292929] rounded-lg text-charcoal-900 dark:text-[#F5F5F5] focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer min-h-[38px]"
           >
             <option value="All">All Statuses</option>
             <option value="Pending">Pending</option>
@@ -163,7 +163,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             id="filter-sortby"
             value={filters.sortBy}
             onChange={handleSortChange}
-            className="w-full px-3 py-2 text-xs font-medium bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer min-h-[38px]"
+            className="w-full px-3 py-2 text-xs font-medium bg-slate-50 dark:bg-[#181818] border border-slate-200 dark:border-[#292929] rounded-lg text-charcoal-900 dark:text-[#F5F5F5] focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer min-h-[38px]"
           >
             <option value="dueDate-asc">Due Date (Earliest First)</option>
             <option value="dueDate-desc">Due Date (Latest First)</option>
@@ -178,7 +178,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
       {/* Active filter and sort badges indicator */}
       {(isFiltered || isSortModified) && (
-        <div className="flex items-center flex-wrap gap-1.5 pt-2 text-xs text-slate-500 dark:text-slate-400">
+        <div className="flex items-center flex-wrap gap-1.5 pt-2 text-xs text-slate-500 dark:text-[#808080]">
           {isFiltered && (
             <span className="inline-flex items-center font-medium">
               <Filter className="w-3 h-3 mr-1" aria-hidden="true" />
@@ -187,31 +187,31 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
           )}
 
           {filters.search.trim() && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#181818] text-slate-700 dark:text-[#B0B0B0] border border-slate-200/60 dark:border-[#292929]">
               Query: "{filters.search.trim()}"
             </span>
           )}
 
           {filters.category !== 'All' && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#181818] text-slate-700 dark:text-[#B0B0B0] border border-slate-200/60 dark:border-[#292929]">
               Category: {filters.category}
             </span>
           )}
 
           {filters.priority !== 'All' && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#181818] text-slate-700 dark:text-[#B0B0B0] border border-slate-200/60 dark:border-[#292929]">
               Priority: {filters.priority}
             </span>
           )}
 
           {filters.status !== 'All' && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#181818] text-slate-700 dark:text-[#B0B0B0] border border-slate-200/60 dark:border-[#292929]">
               Status: {filters.status}
             </span>
           )}
 
           {isSortModified && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#181818] text-slate-700 dark:text-[#B0B0B0] border border-slate-200/60 dark:border-[#292929]">
               Sort: Custom
             </span>
           )}
