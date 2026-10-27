@@ -45,14 +45,14 @@ export const TopBar: React.FC<TopBarProps> = ({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search tasks..."
-          className="w-full pl-10 pr-9 py-2 bg-[#F5F5F7] dark:bg-[#181818] border border-transparent dark:border-[#292929] rounded-full text-xs sm:text-sm text-charcoal-900 dark:text-[#F5F5F5] placeholder:text-slate-400 dark:placeholder:text-[#808080] focus:bg-white dark:focus:bg-[#181818] focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all"
+          className="w-full pl-10 pr-9 py-2 bg-white dark:bg-[#151515] border border-slate-300/90 dark:border-[#303030] hover:border-slate-400 dark:hover:border-[#414141] rounded-full text-xs sm:text-sm text-charcoal-900 dark:text-[#F5F5F5] placeholder:text-slate-400 dark:placeholder:text-[#969696] shadow-sm shadow-slate-200/50 dark:shadow-none focus:bg-white dark:focus:bg-[#151515] focus:outline-none focus:ring-2 focus:ring-brand-500/25 focus:border-brand-500 transition-all"
           aria-label="Search tasks by title"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => onSearchChange('')}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-[#F5F5F5]"
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-[#F5F5F5] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-r-full"
             aria-label="Clear search"
           >
             <X className="w-3.5 h-3.5" aria-hidden="true" />
