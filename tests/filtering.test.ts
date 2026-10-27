@@ -1,8 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { filterTasks, DEFAULT_FILTERS } from '../src/utils/filtering';
+import {
+  filterTasks,
+  DEFAULT_FILTERS,
+  hasActiveFilters,
+  hasNonDefaultSort,
+  hasAnyActiveControls,
+  getActiveFilterCount,
+} from '../src/utils/filtering';
 import { UserTask, TaskFiltersState } from '../src/types/task';
 
-describe('filterTasks utility', () => {
+describe('filtering utilities & sorting separation', () => {
   const sampleTasks: UserTask[] = [
     {
       id: '1',
@@ -36,50 +43,90 @@ describe('filterTasks utility', () => {
     },
   ];
 
-  it('filters by case-insensitive trimmed search query', () => {
-    const filters: TaskFiltersState = { ...DEFAULT_FILTERS, search: '  gdg  ' };
-    const res = filterTasks(sampleTasks, filters);
-    expect(res).toHaveLength(1);
-    expect(res[0].id).toBe('1');
+  describe('filterTasks', () => {
+    it('filters by case-insensitive trimmed search query', () => {
+      const filters: TaskFiltersState = { ...DEFAULT_FILTERS, search: '  gdg  ' };
+      const res = filterTasks(sampleTasks, filters);
+      expect(res).toHaveLength(1);
+      expect(res[0].id).toBe('1');
+    });
+
+    it('filters by category', () => {
+      const filters: TaskFiltersState = { ...DEFAULT_FILTERS, category: 'Academics' };
+      const res = filterTasks(sampleTasks, filters);
+      expect(res).toHaveLength(1);
+      expect(res[0].id).toBe('2');
+    });
+
+    it('filters by priority', () => {
+      const filters: TaskFiltersState = { ...DEFAULT_FILTERS, priority: 'High' };
+      const res = filterTasks(sampleTasks, filters);
+      expect(res).toHaveLength(1);
+      expect(res[0].id).toBe('1');
+    });
+
+    it('filters by status', () => {
+      const filters: TaskFiltersState = { ...DEFAULT_FILTERS, status: 'Completed' };
+      const res = filterTasks(sampleTasks, filters);
+      expect(res).toHaveLength(1);
+      expect(res[0].id).toBe('3');
+    });
+
+    it('composes multiple filters together over the same collection', () => {
+      const filters: TaskFiltersState = {
+        ...DEFAULT_FILTERS,
+        category: 'GDG',
+        priority: 'High',
+        status: 'Pending',
+      };
+      const res = filterTasks(sampleTasks, filters);
+      expect(res).toHaveLength(1);
+      expect(res[0].id).toBe('1');
+
+      const mismatch: TaskFiltersState = {
+        ...DEFAULT_FILTERS,
+        category: 'GDG',
+        priority: 'Low',
+      };
+      expect(filterTasks(sampleTasks, mismatch)).toHaveLength(0);
+    });
   });
 
-  it('filters by category', () => {
-    const filters: TaskFiltersState = { ...DEFAULT_FILTERS, category: 'Academics' };
-    const res = filterTasks(sampleTasks, filters);
-    expect(res).toHaveLength(1);
-    expect(res[0].id).toBe('2');
-  });
+  describe('distinguishing sorting from active filters', () => {
+    it('reports zero tasks with default sort as hasActiveFilters === false', () => {
+      const emptyTasks: UserTask[] = [];
+      const filters = { ...DEFAULT_FILTERS };
+      expect(hasActiveFilters(filters)).toBe(false);
+      expect(hasNonDefaultSort(filters)).toBe(false);
+      expect(filterTasks(emptyTasks, filters)).toHaveLength(0);
+    });
 
-  it('filters by priority', () => {
-    const filters: TaskFiltersState = { ...DEFAULT_FILTERS, priority: 'High' };
-    const res = filterTasks(sampleTasks, filters);
-    expect(res).toHaveLength(1);
-    expect(res[0].id).toBe('1');
-  });
+    it('reports zero tasks with changed sort as hasActiveFilters === false, but hasNonDefaultSort === true', () => {
+      const emptyTasks: UserTask[] = [];
+      const filters: TaskFiltersState = { ...DEFAULT_FILTERS, sortBy: 'priority-high-low' };
+      expect(hasActiveFilters(filters)).toBe(false); // Changing sort does NOT count as active filtering!
+      expect(hasNonDefaultSort(filters)).toBe(true);
+      expect(hasAnyActiveControls(filters)).toBe(true);
+      expect(filterTasks(emptyTasks, filters)).toHaveLength(0);
+    });
 
-  it('filters by status', () => {
-    const filters: TaskFiltersState = { ...DEFAULT_FILTERS, status: 'Completed' };
-    const res = filterTasks(sampleTasks, filters);
-    expect(res).toHaveLength(1);
-    expect(res[0].id).toBe('3');
-  });
+    it('correctly detects tasks present but no filter matches (hasActiveFilters === true)', () => {
+      const filters: TaskFiltersState = { ...DEFAULT_FILTERS, search: 'nonexistent-string' };
+      expect(hasActiveFilters(filters)).toBe(true);
+      const filtered = filterTasks(sampleTasks, filters);
+      expect(filtered).toHaveLength(0);
+      expect(getActiveFilterCount(filters)).toBe(1);
+    });
 
-  it('composes multiple filters together over the same collection', () => {
-    const filters: TaskFiltersState = {
-      ...DEFAULT_FILTERS,
-      category: 'GDG',
-      priority: 'High',
-      status: 'Pending',
-    };
-    const res = filterTasks(sampleTasks, filters);
-    expect(res).toHaveLength(1);
-    expect(res[0].id).toBe('1');
-
-    const mismatch: TaskFiltersState = {
-      ...DEFAULT_FILTERS,
-      category: 'GDG',
-      priority: 'Low',
-    };
-    expect(filterTasks(sampleTasks, mismatch)).toHaveLength(0);
+    it('correctly detects tasks hidden by actual category/status filters', () => {
+      const filters: TaskFiltersState = {
+        ...DEFAULT_FILTERS,
+        category: 'GDG',
+        status: 'Completed', // GDG task is Pending, so this hides all tasks
+      };
+      expect(hasActiveFilters(filters)).toBe(true);
+      expect(getActiveFilterCount(filters)).toBe(2);
+      expect(filterTasks(sampleTasks, filters)).toHaveLength(0);
+    });
   });
 });

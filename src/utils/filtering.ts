@@ -9,20 +9,34 @@ export const DEFAULT_FILTERS: TaskFiltersState = {
 };
 
 /**
- * Checks whether any non-default filter or search query is currently applied.
+ * Checks whether any search query or category/priority/status filter is actively applied.
+ * Excludes sorting, as sorting merely re-orders and does not filter out tasks.
  */
 export function hasActiveFilters(filters: TaskFiltersState): boolean {
   return (
     filters.search.trim() !== '' ||
     filters.category !== 'All' ||
     filters.priority !== 'All' ||
-    filters.status !== 'All' ||
-    filters.sortBy !== DEFAULT_FILTERS.sortBy
+    filters.status !== 'All'
   );
 }
 
 /**
- * Counts how many filter dimensions are currently actively filtering results.
+ * Checks whether the current sort option differs from the default sort.
+ */
+export function hasNonDefaultSort(filters: TaskFiltersState): boolean {
+  return filters.sortBy !== DEFAULT_FILTERS.sortBy;
+}
+
+/**
+ * Checks whether any filter or sort control has been modified from default.
+ */
+export function hasAnyActiveControls(filters: TaskFiltersState): boolean {
+  return hasActiveFilters(filters) || hasNonDefaultSort(filters);
+}
+
+/**
+ * Counts how many filter dimensions (excluding sort) are actively filtering results.
  */
 export function getActiveFilterCount(filters: TaskFiltersState): number {
   let count = 0;
@@ -30,7 +44,6 @@ export function getActiveFilterCount(filters: TaskFiltersState): number {
   if (filters.category !== 'All') count++;
   if (filters.priority !== 'All') count++;
   if (filters.status !== 'All') count++;
-  if (filters.sortBy !== DEFAULT_FILTERS.sortBy) count++;
   return count;
 }
 
