@@ -70,11 +70,11 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     >
       <div className="space-y-4">
         {/* Format Guidance */}
-        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300 space-y-1.5">
-          <p className="font-semibold text-slate-800 dark:text-slate-200">
+        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#181818] border border-slate-200 dark:border-[#292929] text-xs text-slate-600 dark:text-[#B0B0B0] space-y-1.5">
+          <p className="font-semibold text-charcoal-900 dark:text-[#F5F5F5]">
             Supported File Formats:
           </p>
-          <ul className="list-disc list-inside space-y-0.5 text-slate-500 dark:text-slate-400">
+          <ul className="list-disc list-inside space-y-0.5 text-slate-500 dark:text-[#808080]">
             <li>TaskFlow backup format: <code className="font-mono text-[11px] text-brand-600 dark:text-brand-400">taskflow-tasks-*.json</code> with <code className="font-mono text-[11px]">schemaVersion: 1</code></li>
             <li>Raw JSON task array: <code className="font-mono text-[11px]">[&#123; id, title, priority, category, dueDate, status &#125;]</code></li>
             <li>Safe merge policy: Existing tasks are never deleted. Duplicate IDs are automatically assigned fresh unique IDs.</li>
@@ -86,8 +86,8 @@ export const ImportModal: React.FC<ImportModalProps> = ({
           onClick={() => fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
             selectedFile
-              ? 'border-brand-500 bg-brand-50/20 dark:bg-brand-950/20'
-              : 'border-slate-300 dark:border-slate-700 hover:border-brand-400 dark:hover:border-brand-600 hover:bg-slate-50/50 dark:hover:bg-slate-800/50'
+              ? 'border-brand-500 bg-brand-50/20 dark:bg-[#24140E]'
+              : 'border-slate-300 dark:border-[#292929] hover:border-brand-400 dark:hover:border-brand-500 hover:bg-slate-50/50 dark:hover:bg-[#181818]'
           }`}
         >
           <input
@@ -99,7 +99,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             aria-label="Upload JSON file"
           />
 
-          <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 mx-auto flex items-center justify-center mb-3">
+          <div className="w-12 h-12 rounded-2xl bg-peach-100 dark:bg-[#24140E] text-brand-600 dark:text-brand-400 mx-auto flex items-center justify-center mb-3">
             {selectedFile ? (
               <FileText className="w-6 h-6" aria-hidden="true" />
             ) : (
@@ -109,19 +109,19 @@ export const ImportModal: React.FC<ImportModalProps> = ({
 
           {selectedFile ? (
             <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+              <p className="text-sm font-semibold text-charcoal-900 dark:text-[#F5F5F5]">
                 {selectedFile.name}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-[#808080] mt-0.5">
                 {(selectedFile.size / 1024).toFixed(1)} KB • Click to choose another file
               </p>
             </div>
           ) : (
             <div>
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <p className="text-sm font-medium text-slate-700 dark:text-[#F5F5F5]">
                 Click to browse or choose a JSON file
               </p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              <p className="text-xs text-slate-400 dark:text-[#808080] mt-1">
                 JSON files only (max 5MB)
               </p>
             </div>
@@ -143,14 +143,14 @@ export const ImportModal: React.FC<ImportModalProps> = ({
         )}
 
         {/* Modal Actions */}
-        <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-[#292929]">
           <button
             type="button"
             onClick={() => {
               handleReset();
               onClose();
             }}
-            className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-[#F5F5F5] bg-slate-100 dark:bg-[#181818] hover:bg-slate-200 dark:hover:bg-[#202020] rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 border border-slate-200/60 dark:border-[#292929]"
           >
             Cancel
           </button>
@@ -158,7 +158,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             type="button"
             onClick={handleImport}
             disabled={!selectedFile || isValidating}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl shadow-sm shadow-brand-600/30 transition-all focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl shadow-sm shadow-brand-500/30 transition-all focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             {isValidating ? (
               'Validating File...'

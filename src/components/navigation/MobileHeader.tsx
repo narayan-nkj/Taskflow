@@ -4,7 +4,7 @@ import {
   X,
   Plus,
   LayoutDashboard,
-  Database,
+  Library,
   Download,
   Upload,
   Sun,
@@ -41,18 +41,18 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
   };
 
   return (
-    <header className="md:hidden sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+    <header className="md:hidden sticky top-0 z-40 bg-white/95 dark:bg-[#0B0B0B]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#292929]">
       <div className="flex items-center justify-between px-4 py-3">
         {/* Brand */}
         <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-sm">
-            <CheckCircle2 className="w-5 h-5 stroke-[2.5]" aria-hidden="true" />
+          <div className="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center text-white shadow-sm">
+            <CheckCircle2 className="w-5 h-5 stroke-[2.75]" aria-hidden="true" />
           </div>
           <div>
-            <span className="font-bold text-slate-900 dark:text-slate-100 text-base leading-none">
+            <span className="font-bold text-charcoal-900 dark:text-[#F5F5F5] text-base leading-none">
               TaskFlow
             </span>
-            <span className="ml-1.5 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300">
+            <span className="ml-1.5 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-peach-100 dark:bg-[#24140E] text-brand-600 dark:text-brand-300">
               GDG
             </span>
           </div>
@@ -63,7 +63,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
           <button
             type="button"
             onClick={onAddTask}
-            className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-brand-500 min-h-[38px]"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-semibold shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-brand-500 min-h-[38px]"
             aria-label="Add new task"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" aria-hidden="true" />
@@ -73,7 +73,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 min-w-[40px] min-h-[40px] flex items-center justify-center"
+            className="p-2 rounded-xl text-slate-600 dark:text-[#B0B0B0] hover:bg-slate-100 dark:hover:bg-[#181818] transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 min-w-[40px] min-h-[40px] flex items-center justify-center"
             aria-expanded={isOpen}
             aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
           >
@@ -88,15 +88,15 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
 
       {/* Collapsible Mobile Navigation Drawer */}
       {isOpen && (
-        <div className="border-t border-slate-200 dark:border-slate-800 p-4 space-y-4 bg-white dark:bg-slate-900 shadow-xl animate-in slide-in-from-top-2 duration-150">
+        <div className="border-t border-slate-200 dark:border-[#292929] p-4 space-y-4 bg-white dark:bg-[#111111] shadow-xl animate-in slide-in-from-top-2 duration-150">
           <nav className="space-y-1" aria-label="Mobile Navigation">
             <button
               type="button"
               onClick={() => handleTabClick('tasks')}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-colors min-h-[44px] ${
                 currentTab === 'tasks'
-                  ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 font-semibold'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ? 'bg-peach-100 dark:bg-[#24140E] text-brand-700 dark:text-brand-300 font-semibold border border-brand-200 dark:border-brand-900/40'
+                  : 'text-slate-700 dark:text-[#B0B0B0] hover:bg-slate-100 dark:hover:bg-[#181818]'
               }`}
               aria-current={currentTab === 'tasks' ? 'page' : undefined}
             >
@@ -105,7 +105,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                 <span>My Tasks</span>
               </div>
               {userTasksCount > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#181818] text-slate-600 dark:text-[#B0B0B0] border border-slate-200 dark:border-[#292929]">
                   {userTasksCount}
                 </span>
               )}
@@ -116,30 +116,30 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               onClick={() => handleTabClick('samples')}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-colors min-h-[44px] ${
                 currentTab === 'samples'
-                  ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 font-semibold'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ? 'bg-peach-100 dark:bg-[#24140E] text-brand-700 dark:text-brand-300 font-semibold border border-brand-200 dark:border-brand-900/40'
+                  : 'text-slate-700 dark:text-[#B0B0B0] hover:bg-slate-100 dark:hover:bg-[#181818]'
               }`}
               aria-current={currentTab === 'samples' ? 'page' : undefined}
             >
               <div className="flex items-center space-x-3">
-                <Database className="w-4 h-4" aria-hidden="true" />
+                <Library className="w-4 h-4" aria-hidden="true" />
                 <span>Sample Tasks (DummyJSON)</span>
               </div>
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 uppercase">
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-peach-100 dark:bg-[#24140E] text-brand-700 dark:text-brand-300 uppercase">
                 API
               </span>
             </button>
           </nav>
 
           {/* Actions: Export, Import, Theme */}
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2 text-xs">
+          <div className="pt-3 border-t border-slate-100 dark:border-[#292929] grid grid-cols-2 gap-2 text-xs">
             <button
               type="button"
               onClick={() => {
                 onExport();
                 setIsOpen(false);
               }}
-              className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium min-h-[42px] transition-colors"
+              className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-[#181818] hover:bg-slate-200 dark:hover:bg-[#202020] text-slate-700 dark:text-[#F5F5F5] font-medium min-h-[42px] transition-colors border border-slate-200/60 dark:border-[#292929]"
             >
               <Download className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Export JSON</span>
@@ -151,7 +151,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                 onImport();
                 setIsOpen(false);
               }}
-              className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium min-h-[42px] transition-colors"
+              className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-[#181818] hover:bg-slate-200 dark:hover:bg-[#202020] text-slate-700 dark:text-[#F5F5F5] font-medium min-h-[42px] transition-colors border border-slate-200/60 dark:border-[#292929]"
             >
               <Upload className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Import JSON</span>
@@ -162,7 +162,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             <button
               type="button"
               onClick={onToggleTheme}
-              className="w-full flex items-center justify-between py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 min-h-[42px] transition-colors"
+              className="w-full flex items-center justify-between py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-[#181818] hover:bg-slate-200 dark:hover:bg-[#202020] text-xs font-medium text-slate-700 dark:text-[#F5F5F5] min-h-[42px] transition-colors border border-slate-200/60 dark:border-[#292929]"
               aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
             >
               <div className="flex items-center space-x-2.5">
