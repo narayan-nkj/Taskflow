@@ -1,6 +1,6 @@
 # TaskFlow
 
-TaskFlow is a student productivity and task dashboard built with React, TypeScript, and Vite to organize academic deadlines, GDG commitments, and personal tasks in a single responsive workspace.
+TaskFlow is a student productivity and task dashboard built with React, JavaScript, and Vite to organize academic deadlines, GDG commitments, and personal tasks in a single responsive workspace.
 
 **Live Demo:** [https://taskflow-nkj.vercel.app/](https://taskflow-nkj.vercel.app/)
 
@@ -55,7 +55,7 @@ Authentic application captures preserved from live sessions in [`SCREENSHOTS/`](
   - Responsive app shell adapting between a desktop navigation rail and a mobile drawer header.
   - Open-canvas layout with dedicated empty states for zero tasks, no filter results, and no favorites.
 - **Zero AI/ML Dependencies:**
-  - Pure deterministic TypeScript logic and React state. No AI/ML libraries, APIs, or prediction frameworks.
+  - Pure deterministic JavaScript logic and React state. No AI/ML libraries, APIs, or prediction frameworks.
 
 ### Implemented Optional & User-Requested Features
 
@@ -91,7 +91,7 @@ Authentic application captures preserved from live sessions in [`SCREENSHOTS/`](
 
 ## Technology Stack
 
-- **Framework & Build:** React 18, Vite 8, TypeScript 5.6
+- **Framework & Build:** React 18, Vite 8, JavaScript (ES2020+)
 - **Styling:** Tailwind CSS 3.4, PostCSS, Autoprefixer
 - **Icons:** Lucide React
 - **Test Framework:** Vitest 5, `@testing-library/react`, `@testing-library/jest-dom`, JSDOM
@@ -138,10 +138,9 @@ The application will run locally at `http://localhost:5173/`.
 | Script | Command | Purpose |
 | :--- | :--- | :--- |
 | **Development** | `npm run dev` | Starts Vite dev server with Hot Module Replacement (HMR). |
-| **Lint** | `npm run lint` | Runs ESLint across all TypeScript, TSX, and test files. |
-| **Type Check** | `npm run type-check` | Runs `tsc --noEmit` to verify type safety across the project. |
+| **Lint** | `npm run lint` | Runs ESLint across all JavaScript, JSX, and test files. |
 | **Test Suite** | `npm test` | Runs the full Vitest suite (183 tests across 27 files). |
-| **Build** | `npm run build` | Compiles TypeScript (`tsc -b`) and generates production bundle in `dist/`. |
+| **Build** | `npm run build` | Bundles assets with Vite into `dist/`. |
 | **Preview** | `npm run preview` | Spins up a local web server to preview the production build. |
 
 ---
@@ -159,48 +158,48 @@ Taskflow/
 │   └── Screenshot 2026-10-27 at 6.25.45 PM.png
 ├── src/
 │   ├── config/
-│   │   └── user.ts                        # Student profile identity constants
+│   │   └── user.js                        # Student profile identity constants
 │   ├── types/
-│   │   ├── api.ts                         # DummyJSON and Advice Slip response schemas
-│   │   ├── notification.ts                # In-app and desktop alert types
-│   │   └── task.ts                        # UserTask, Subtask, enums, and export payload types
+│   │   ├── api.js                         # DummyJSON and Advice Slip response schemas (JSDoc)
+│   │   ├── notification.js                # In-app and desktop alert types (JSDoc)
+│   │   └── task.js                        # UserTask, Subtask, enums, and export payload types (JSDoc)
 │   ├── utils/
-│   │   ├── categoryIcons.ts               # Category-to-icon semantic mapping
-│   │   ├── dates.ts                       # Local calendar date parsing & deadline classification
-│   │   ├── filtering.ts                   # Composable search, category, priority, status, favorites filters
-│   │   ├── metricHistory.ts               # Daily snapshot volume logging for sparklines
-│   │   ├── sorting.ts                     # Deterministic multi-tier sorting
-│   │   ├── statistics.ts                  # Pure calculation of Total, Completed, Pending, Completion Rate
-│   │   ├── storage.ts                     # Namespaced localStorage operations & recovery
-│   │   ├── subtasks.ts                    # Subtask title validation and ID generation
-│   │   └── validation.ts                  # Schema guards for UserTask, Subtask, and JSON imports
+│   │   ├── categoryIcons.js               # Category-to-icon semantic mapping
+│   │   ├── dates.js                       # Local calendar date parsing & deadline classification
+│   │   ├── filtering.js                   # Composable search, category, priority, status, favorites filters
+│   │   ├── metricHistory.js               # Daily snapshot volume logging for sparklines
+│   │   ├── sorting.js                     # Deterministic multi-tier sorting
+│   │   ├── statistics.js                  # Pure calculation of Total, Completed, Pending, Completion Rate
+│   │   ├── storage.js                     # Namespaced localStorage operations & recovery
+│   │   ├── subtasks.js                    # Subtask title validation and ID generation
+│   │   └── validation.js                  # Schema guards for UserTask, Subtask, and JSON imports
 │   ├── services/
-│   │   ├── advice.ts                      # Advice Slip API client
-│   │   ├── dummyjson.ts                   # DummyJSON API client with AbortController
-│   │   ├── importExport.ts                # JSON file export trigger and merge parser
-│   │   └── weatherService.ts              # Open-Meteo weather and geocoding client with cache
+│   │   ├── advice.js                      # Advice Slip API client
+│   │   ├── dummyjson.js                   # DummyJSON API client with AbortController
+│   │   ├── importExport.js                # JSON file export trigger and merge parser
+│   │   └── weatherService.js              # Open-Meteo weather and geocoding client with cache
 │   ├── hooks/
-│   │   ├── useAdvice.ts                   # Daily advice query hook
-│   │   ├── useDeadlineAlerts.ts           # Proactive deadline alerts, deduplication & notifications
-│   │   ├── useSampleTodos.ts              # DummyJSON query hook
-│   │   ├── useTasks.ts                    # Core user task CRUD, subtasks, favorites & persistence
-│   │   ├── useTheme.ts                    # Light/dark theme preference hook
-│   │   └── useWeather.ts                  # Weather fetching, geolocation consent & city search hook
+│   │   ├── useAdvice.js                   # Daily advice query hook
+│   │   ├── useDeadlineAlerts.js           # Proactive deadline alerts, deduplication & notifications
+│   │   ├── useSampleTodos.js              # DummyJSON query hook
+│   │   ├── useTasks.js                    # Core user task CRUD, subtasks, favorites & persistence
+│   │   ├── useTheme.js                    # Light/dark theme preference hook
+│   │   └── useWeather.js                  # Weather fetching, geolocation consent & city search hook
 │   ├── components/
 │   │   ├── common/                        # Reusable UI primitives (Badge, Modal, Toast, DatePickerPopover, etc.)
 │   │   ├── navigation/                    # Sidebar, MobileHeader, TopBar, NotificationCenter
 │   │   ├── dashboard/                     # StatCards, DateStrip, TaskFilters, TaskList, TaskItem, TaskDetailPanel, WeatherCard
 │   │   ├── samples/                       # SampleTodosView for DummyJSON items
 │   │   └── transfer/                      # ImportModal for JSON file restore
-│   ├── App.tsx                            # Root application component and state orchestration
-│   ├── main.tsx                           # React entry point
+│   ├── App.jsx                            # Root application component and state orchestration
+│   ├── main.jsx                           # React entry point
 │   └── index.css                          # Tailwind CSS imports and accessible focus styles
 ├── tests/                                 # 27 Vitest test files covering all hooks, components, and utilities
+├── eslint.config.js                       # ESLint configuration for JavaScript and JSX
 ├── index.html                             # HTML entry with font preconnect and FOUC prevention
 ├── package.json                           # Dependencies and scripts
 ├── tailwind.config.js                     # Tailwind configuration and color tokens
-├── tsconfig.json                          # Strict TypeScript root configuration
-└── vite.config.ts                         # Vite build configuration
+└── vite.config.js                         # Vite build configuration
 ```
 
 ---
@@ -253,7 +252,7 @@ To build the project for production deployment:
 npm run build
 ```
 
-This compiles TypeScript using `tsc -b` and bundles assets with Vite into the `dist/` directory.
+This bundles assets with Vite into the `dist/` directory.
 
 ---
 
