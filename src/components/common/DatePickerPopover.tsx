@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, X } from 'lucide-react';
 import { formatDisplayDate, formatLocalYmd, parseLocalDate } from '../../utils/dates';
 
@@ -20,6 +21,15 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Position coordinates for portal floating popover
+  const [coords, setCoords] = useState<{
+    top?: number;
+    bottom?: number;
+    left?: number;
+    isCenter?: boolean;
+  }>({});
 
   // Today's date in local calendar YYYY-MM-DD
   const todayStr = useMemo(() => formatLocalYmd(new Date()), []);
@@ -47,34 +57,94 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
     }
   }, [value]);
 
-  // Close on outside click
+  // Position calculation to guarantee zero clipping and smart placement
+  const updatePosition = useCallback(() => {
+    if (!containerRef.current) return;
+    const triggerRect = containerRef.current.getBoundingClientRect();
+    const popoverWidth = Math.min(320, window.innerWidth - 24);
+    const popoverHeight = 340; // Full calendar height with weekday header, grid, and presets
+
+    // If screen height is severely constrained, center in viewport with backdrop
+    if (window.innerHeight < 460 || window.innerWidth < 360) {
+      setCoords({ isCenter: true });
+      return;
+    }
+
+    const spaceBelow = window.innerHeight - triggerRect.bottom;
+    const spaceAbove = triggerRect.top;
+
+    let top: number | undefined;
+    let bottom: number | undefined;
+
+    // Prefer opening below if enough room; if not, open above the input field
+    if (spaceBelow >= popoverHeight + 10 || spaceBelow >= spaceAbove) {
+      top = triggerRect.bottom + 6;
+    } else {
+      bottom = window.innerHeight - triggerRect.top + 6;
+    }
+
+    // Horizontal alignment clamped within viewport
+    let left = triggerRect.left;
+    if (left + popoverWidth > window.innerWidth - 12) {
+      left = Math.max(12, window.innerWidth - popoverWidth - 12);
+    }
+    if (left < 12) {
+      left = 12;
+    }
+
+    setCoords({ top, bottom, left, isCenter: false });
+  }, []);
+
+  // Recalculate position on open, scroll, or resize
+  useEffect(() => {
+    if (isOpen) {
+      updatePosition();
+      const handleReposition = () => updatePosition();
+      window.addEventListener('resize', handleReposition);
+      window.addEventListener('scroll', handleReposition, true);
+      return () => {
+        window.removeEventListener('resize', handleReposition);
+        window.removeEventListener('scroll', handleReposition, true);
+      };
+    }
+  }, [isOpen, updatePosition]);
+
+  // Close on outside click (inspecting both trigger container and portaled popover)
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        popoverRef.current &&
+        !popoverRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     };
     if (isOpen) {
       document.addEventListener('mousedown', handleOutsideClick);
+      return () => {
+        document.removeEventListener('mousedown', handleOutsideClick);
+      };
     }
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
   }, [isOpen]);
 
-  // Close on Escape key
+  // Close on Escape key (capture phase stops modal dismissal)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
+        e.stopPropagation();
+        e.preventDefault();
         setIsOpen(false);
       }
     };
     if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('keydown', handleKeyDown, true);
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown, true);
+      };
     }
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
   }, [isOpen]);
 
   // Navigation handlers
@@ -165,6 +235,16 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
     setIsOpen(false);
   };
 
+  const handleSetYesterday = () => {
+    const y = new Date();
+    y.setDate(y.getDate() - 1);
+    const yesterdayStr = formatLocalYmd(y);
+    onChange(yesterdayStr);
+    setViewYear(y.getFullYear());
+    setViewMonth(y.getMonth());
+    setIsOpen(false);
+  };
+
   const handleSetToday = () => {
     onChange(todayStr);
     setViewYear(new Date().getFullYear());
@@ -183,6 +263,124 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
   };
 
   const displayLabel = value ? formatDisplayDate(value) : 'Select due date...';
+
+  // The calendar popover card rendered inside portal
+  const popoverContent = (
+    <div
+      ref={popoverRef}
+      role="dialog"
+      aria-label="Calendar date picker"
+      className="w-80 max-w-[calc(100vw-24px)] bg-white dark:bg-[#111111] border border-slate-200 dark:border-[#292929] rounded-2xl shadow-2xl p-3.5 select-none animate-in fade-in zoom-in-95 duration-150"
+    >
+      {/* Header: Month/Year and navigation arrows */}
+      <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-100 dark:border-[#202020]">
+        <h4 className="text-xs sm:text-sm font-bold text-charcoal-900 dark:text-[#F5F5F5]">
+          {monthHeading}
+        </h4>
+
+        <div className="flex items-center space-x-1">
+          <button
+            type="button"
+            onClick={handlePrevMonth}
+            className="p-1.5 rounded-lg text-slate-600 dark:text-[#B0B0B0] hover:bg-slate-100 dark:hover:bg-[#202020] transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 cursor-pointer"
+            aria-label="Previous month"
+          >
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={handleNextMonth}
+            className="p-1.5 rounded-lg text-slate-600 dark:text-[#B0B0B0] hover:bg-slate-100 dark:hover:bg-[#202020] transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 cursor-pointer"
+            aria-label="Next month"
+          >
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
+      {/* Weekday column headers */}
+      <div className="grid grid-cols-7 gap-1 text-center mb-1">
+        {weekDays.map((wd) => (
+          <span
+            key={wd}
+            className="text-[10px] font-semibold text-slate-400 dark:text-[#808080] py-0.5"
+          >
+            {wd}
+          </span>
+        ))}
+      </div>
+
+      {/* Date cells grid - Fully interactive without internal scrollbar */}
+      <div className="grid grid-cols-7 gap-1" role="grid">
+        {calendarDays.map((cell) => {
+          const isSelected = cell.ymd === value;
+          const isToday = cell.ymd === todayStr;
+
+          return (
+            <button
+              key={cell.ymd}
+              type="button"
+              onClick={() => handleSelectDate(cell.ymd)}
+              className={`h-8 rounded-xl text-xs font-medium flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-brand-500 cursor-pointer ${
+                isSelected
+                  ? 'bg-brand-500 text-white font-bold shadow-md shadow-brand-500/25 scale-[1.02]'
+                  : isToday
+                  ? 'border border-brand-500 text-brand-600 dark:text-brand-400 font-bold hover:bg-peach-50 dark:hover:bg-[#24140E]'
+                  : cell.isCurrentMonth
+                  ? 'text-charcoal-900 dark:text-[#F5F5F5] hover:bg-slate-100 dark:hover:bg-[#1f1f1f]'
+                  : 'text-slate-300 dark:text-[#4a4a4a] hover:bg-slate-50 dark:hover:bg-[#181818]'
+              }`}
+              aria-selected={isSelected}
+              aria-label={cell.ymd}
+            >
+              {cell.dayNum}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Quick preset actions: Supports past (Yesterday), today, tomorrow, and clear */}
+      <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-[#202020] flex items-center justify-between text-[11px] gap-1">
+        <div className="flex items-center space-x-1 flex-wrap">
+          <button
+            type="button"
+            onClick={handleSetYesterday}
+            className="px-2 py-1 rounded-lg text-slate-600 dark:text-[#B0B0B0] hover:bg-peach-100 dark:hover:bg-[#24140E] hover:text-brand-600 dark:hover:text-brand-400 font-semibold transition-colors cursor-pointer"
+            title="Set due date to yesterday"
+          >
+            Yesterday
+          </button>
+          <button
+            type="button"
+            onClick={handleSetToday}
+            className="px-2 py-1 rounded-lg text-slate-600 dark:text-[#B0B0B0] hover:bg-peach-100 dark:hover:bg-[#24140E] hover:text-brand-600 dark:hover:text-brand-400 font-semibold transition-colors cursor-pointer"
+            title="Set due date to today"
+          >
+            Today
+          </button>
+          <button
+            type="button"
+            onClick={handleSetTomorrow}
+            className="px-2 py-1 rounded-lg text-slate-600 dark:text-[#B0B0B0] hover:bg-peach-100 dark:hover:bg-[#24140E] hover:text-brand-600 dark:hover:text-brand-400 font-semibold transition-colors cursor-pointer"
+            title="Set due date to tomorrow"
+          >
+            Tomorrow
+          </button>
+        </div>
+
+        {value && (
+          <button
+            type="button"
+            onClick={handleClearDate}
+            className="px-2 py-1 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold transition-colors cursor-pointer shrink-0"
+            title="Clear due date"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="relative w-full" ref={containerRef}>
@@ -224,111 +422,34 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
         )}
       </div>
 
-      {/* Custom Calendar Popover Dropdown */}
-      {isOpen && (
-        <div
-          role="dialog"
-          aria-label="Calendar date picker"
-          className="absolute z-50 mt-1.5 left-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-[#111111] border border-slate-200 dark:border-[#292929] rounded-2xl shadow-xl p-3.5 animate-in fade-in zoom-in-95 duration-150"
-        >
-          {/* Header: Month/Year and navigation arrows */}
-          <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-100 dark:border-[#202020]">
-            <h4 className="text-xs sm:text-sm font-bold text-charcoal-900 dark:text-[#F5F5F5]">
-              {monthHeading}
-            </h4>
-
-            <div className="flex items-center space-x-1">
-              <button
-                type="button"
-                onClick={handlePrevMonth}
-                className="p-1.5 rounded-lg text-slate-600 dark:text-[#B0B0B0] hover:bg-slate-100 dark:hover:bg-[#202020] transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
-                aria-label="Previous month"
-              >
-                <ChevronLeft className="w-4 h-4" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                onClick={handleNextMonth}
-                className="p-1.5 rounded-lg text-slate-600 dark:text-[#B0B0B0] hover:bg-slate-100 dark:hover:bg-[#202020] transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
-                aria-label="Next month"
-              >
-                <ChevronRight className="w-4 h-4" aria-hidden="true" />
-              </button>
+      {/* Portaled Calendar Popover to escape all modal overflow-hidden & scroll clipping boundaries */}
+      {isOpen &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          coords.isCenter ? (
+            <div
+              className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/40 backdrop-blur-[2px]"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setIsOpen(false);
+              }}
+            >
+              {popoverContent}
             </div>
-          </div>
-
-          {/* Weekday column headers */}
-          <div className="grid grid-cols-7 gap-1 text-center mb-1">
-            {weekDays.map((wd) => (
-              <span
-                key={wd}
-                className="text-[10px] font-semibold text-slate-400 dark:text-[#808080] py-0.5"
-              >
-                {wd}
-              </span>
-            ))}
-          </div>
-
-          {/* Date cells grid */}
-          <div className="grid grid-cols-7 gap-1" role="grid">
-            {calendarDays.map((cell) => {
-              const isSelected = cell.ymd === value;
-              const isToday = cell.ymd === todayStr;
-
-              return (
-                <button
-                  key={cell.ymd}
-                  type="button"
-                  onClick={() => handleSelectDate(cell.ymd)}
-                  className={`h-8 rounded-xl text-xs font-medium flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-brand-500 ${
-                    isSelected
-                      ? 'bg-brand-500 text-white font-bold shadow-md shadow-brand-500/25 scale-[1.02]'
-                      : isToday
-                      ? 'border border-brand-500 text-brand-600 dark:text-brand-400 font-bold hover:bg-peach-50 dark:hover:bg-[#24140E]'
-                      : cell.isCurrentMonth
-                      ? 'text-charcoal-900 dark:text-[#F5F5F5] hover:bg-slate-100 dark:hover:bg-[#1f1f1f]'
-                      : 'text-slate-300 dark:text-[#4a4a4a] hover:bg-slate-50 dark:hover:bg-[#181818]'
-                  }`}
-                  aria-selected={isSelected}
-                  aria-label={cell.ymd}
-                >
-                  {cell.dayNum}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Quick preset actions */}
-          <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-[#202020] flex items-center justify-between text-[11px]">
-            <div className="flex items-center space-x-1.5">
-              <button
-                type="button"
-                onClick={handleSetToday}
-                className="px-2 py-1 rounded-lg text-slate-600 dark:text-[#B0B0B0] hover:bg-peach-100 dark:hover:bg-[#24140E] hover:text-brand-600 dark:hover:text-brand-400 font-semibold transition-colors"
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                onClick={handleSetTomorrow}
-                className="px-2 py-1 rounded-lg text-slate-600 dark:text-[#B0B0B0] hover:bg-peach-100 dark:hover:bg-[#24140E] hover:text-brand-600 dark:hover:text-brand-400 font-semibold transition-colors"
-              >
-                Tomorrow
-              </button>
+          ) : (
+            <div
+              style={{
+                position: 'fixed',
+                top: coords.top !== undefined ? `${coords.top}px` : undefined,
+                bottom: coords.bottom !== undefined ? `${coords.bottom}px` : undefined,
+                left: `${coords.left ?? 12}px`,
+                zIndex: 70,
+              }}
+            >
+              {popoverContent}
             </div>
-
-            {value && (
-              <button
-                type="button"
-                onClick={handleClearDate}
-                className="px-2 py-1 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold transition-colors"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+          ),
+          document.body
+        )}
     </div>
   );
 };

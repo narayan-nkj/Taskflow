@@ -47,6 +47,16 @@ describe('validation utilities and import schema', () => {
       expect(res.isValid).toBe(true);
       expect(res.errors).toEqual({});
     });
+
+    it('accepts past due dates without rejecting or clearing them (yesterday, last month, previous years)', () => {
+      const yesterdayRes = validateTaskInput({ ...baseValidInput, dueDate: '2026-10-26' });
+      expect(yesterdayRes.isValid).toBe(true);
+      expect(yesterdayRes.errors.dueDate).toBeUndefined();
+
+      const lastYearRes = validateTaskInput({ ...baseValidInput, dueDate: '2025-01-15' });
+      expect(lastYearRes.isValid).toBe(true);
+      expect(lastYearRes.errors.dueDate).toBeUndefined();
+    });
   });
 
   describe('isValidUserTask record validator', () => {

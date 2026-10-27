@@ -72,4 +72,55 @@ describe('DatePickerPopover Component', () => {
 
     expect(onChange).toHaveBeenCalledWith('');
   });
+
+  it('allows setting Yesterday via quick action button for past-date scheduling', () => {
+    const onChange = vi.fn();
+    render(<DatePickerPopover value="" onChange={onChange} />);
+
+    const trigger = screen.getByRole('button', { name: /due date picker/i });
+    fireEvent.click(trigger);
+
+    const yesterdayBtn = screen.getByRole('button', { name: 'Yesterday' });
+    fireEvent.click(yesterdayBtn);
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const expectedYesterday = formatLocalYmd(yesterday);
+    expect(onChange).toHaveBeenCalledWith(expectedYesterday);
+  });
+
+  it('allows selecting past dates and ensures they are not disabled', () => {
+    const onChange = vi.fn();
+    render(<DatePickerPopover value="2026-10-15" onChange={onChange} />);
+
+    const trigger = screen.getByRole('button', { name: /due date picker/i });
+    fireEvent.click(trigger);
+
+    // Day 5 in October 2026 (a past date relative to Oct 15)
+    const pastCellBtn = screen.getByRole('button', { name: '2026-10-05' });
+    expect(pastCellBtn).not.toBeDisabled();
+
+    fireEvent.click(pastCellBtn);
+    expect(onChange).toHaveBeenCalledWith('2026-10-05');
+  });
+
+  it('allows navigating to previous year and selecting historical date', () => {
+    const onChange = vi.fn();
+    render(<DatePickerPopover value="2026-01-15" onChange={onChange} />);
+
+    const trigger = screen.getByRole('button', { name: /due date picker/i });
+    fireEvent.click(trigger);
+
+    // Navigating back from Jan 2026 goes to Dec 2025
+    const prevBtn = screen.getByRole('button', { name: /previous month/i });
+    fireEvent.click(prevBtn);
+
+    expect(screen.getByText(/December 2025/i)).toBeInTheDocument();
+
+    const decDate = screen.getByRole('button', { name: '2025-12-25' });
+    expect(decDate).not.toBeDisabled();
+    fireEvent.click(decDate);
+
+    expect(onChange).toHaveBeenCalledWith('2025-12-25');
+  });
 });
